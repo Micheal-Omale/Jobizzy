@@ -1,0 +1,178 @@
+@import "tailwindcss";
+
+:root {
+  /* Font */
+  --font-sans: "Inter", sans-serif;
+
+  /* Page and surface backgrounds */
+  --color-background: #f6f7fb;
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f9fafb;
+  --color-surface-tertiary: #f2f5f7;
+  --color-surface-muted: #f4f5fb;
+
+  /* Borders */
+  --color-border: #e7eaf3;
+  --color-border-light: #e5e7eb;
+  --color-border-muted: #dfe1e7;
+
+  /* Text */
+  --color-text-primary: #101828;
+  --color-text-secondary: #6a7282;
+  --color-text-muted: #99a1af;
+  --color-text-dark: #364153;
+  --color-text-darker: #36394a;
+  --color-text-darkest: #111827;
+  --color-text-black: #131316;
+  --color-text-slate: #272835;
+  --color-text-slate-medium: #666d80;
+
+  /* Primary accent — purple */
+  --color-accent: #7c5cfc;
+  --color-accent-dark: #5e4cff;
+  --color-accent-light: #f3e8ff;
+  --color-accent-muted: #faf5ff;
+  --color-accent-foreground: #ffffff;
+
+  /* Success — green */
+  --color-success: #10b981;
+  --color-success-alt: #00bc7d;
+  --color-success-dark: #007a55;
+  --color-success-darker: #009966;
+  --color-success-light: #d0fae5;
+  --color-success-lightest: #ecfdf5;
+  --color-success-foreground: #007a55;
+
+  /* Info — blue */
+  --color-info: #61a8ff;
+  --color-info-dark: #155dfc;
+  --color-info-medium: #2b7fff;
+  --color-info-light: #dbeafe;
+  --color-info-lightest: #eff6ff;
+  --color-info-foreground: #155dfc;
+  --color-info-muted: #94a2c5;
+
+  /* Warning — orange */
+  --color-warning: #ff8904;
+  --color-warning-foreground: #ffffff;
+
+  /* Error — red */
+  --color-error: #ef4444;
+  --color-error-foreground: #ffffff;
+
+  /* LinkedIn brand */
+  --color-linkedin: #0a66c2;
+  --color-linkedin-light: #dce6f1;
+  --color-linkedin-foreground: #ffffff;
+
+  /* Dark overlays */
+  --color-overlay: #111827;
+  --color-overlay-dark: #131316;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-secondary: var(--color-surface-secondary);
+  --color-surface-tertiary: var(--color-surface-tertiary);
+  --color-surface-muted: var(--color-surface-muted);
+
+  --color-border: var(--color-border);
+  --color-border-light: var(--color-border-light);
+  --color-border-muted: var(--color-border-muted);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-dark: var(--color-text-dark);
+  --color-text-darker: var(--color-text-darker);
+  --color-text-darkest: var(--color-text-darkest);
+  --color-text-black: var(--color-text-black);
+  --color-text-slate: var(--color-text-slate);
+  --color-text-slate-medium: var(--color-text-slate-medium);
+
+  --color-accent: var(--color-accent);
+  --color-accent-dark: var(--color-accent-dark);
+  --color-accent-light: var(--color-accent-light);
+  --color-accent-muted: var(--color-accent-muted);
+  --color-accent-foreground: var(--color-accent-foreground);
+
+  --color-success: var(--color-success);
+  --color-success-alt: var(--color-success-alt);
+  --color-success-dark: var(--color-success-dark);
+  --color-success-darker: var(--color-success-darker);
+  --color-success-light: var(--color-success-light);
+  --color-success-lightest: var(--color-success-lightest);
+  --color-success-foreground: var(--color-success-foreground);
+
+  --color-info: var(--color-info);
+  --color-info-dark: var(--color-info-dark);
+  --color-info-medium: var(--color-info-medium);
+  --color-info-light: var(--color-info-light);
+  --color-info-lightest: var(--color-info-lightest);
+  --color-info-foreground: var(--color-info-foreground);
+  --color-info-muted: var(--color-info-muted);
+
+  --color-warning: var(--color-warning);
+  --color-warning-foreground: var(--color-warning-foreground);
+
+  --color-error: var(--color-error);
+  --color-error-foreground: var(--color-error-foreground);
+
+  --color-linkedin: var(--color-linkedin);
+  --color-linkedin-light: var(--color-linkedin-light);
+  --color-linkedin-foreground: var(--color-linkedin-foreground);
+
+  --color-overlay: var(--color-overlay);
+  --color-overlay-dark: var(--color-overlay-dark);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* No dark theme defined yet in ui-tokens.md */
+  }
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+.jp-soft-gradient {
+  background:
+    radial-gradient(circle at 38% 16%, color-mix(in srgb, var(--color-accent-light) 74%, transparent) 0, transparent 30%),
+    radial-gradient(circle at 72% 26%, color-mix(in srgb, var(--color-info-light) 72%, transparent) 0, transparent 34%),
+    linear-gradient(110deg, var(--color-surface) 0%, var(--color-accent-muted) 43%, var(--color-info-lightest) 100%);
+}
+
+.jp-hatch {
+  background-image: repeating-linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--color-border) 54%, transparent) 0,
+    color-mix(in srgb, var(--color-border) 54%, transparent) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+}
+
+.jp-page-grid {
+  background-image:
+    linear-gradient(to right, transparent 0, transparent calc(50% - 1px), var(--color-border) calc(50% - 1px), var(--color-border) 50%, transparent 50%),
+    linear-gradient(to bottom, transparent 0, transparent calc(100% - 1px), var(--color-border) calc(100% - 1px), var(--color-border) 100%);
+}
