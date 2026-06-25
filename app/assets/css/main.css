@@ -55,9 +55,13 @@
   /* Warning — orange */
   --color-warning: #ff8904;
   --color-warning-foreground: #ffffff;
+  --color-warning-light: #ffedd5;
+  --color-warning-dark: #c2410c;
 
   /* Error — red */
   --color-error: #ef4444;
+  --color-error-light: #fee2e2;
+  --color-error-lightest: #fef2f2;
   --color-error-foreground: #ffffff;
 
   /* LinkedIn brand */
@@ -124,8 +128,12 @@
 
   --color-warning: var(--color-warning);
   --color-warning-foreground: var(--color-warning-foreground);
+  --color-warning-light: var(--color-warning-light);
+  --color-warning-dark: var(--color-warning-dark);
 
   --color-error: var(--color-error);
+  --color-error-light: var(--color-error-light);
+  --color-error-lightest: var(--color-error-lightest);
   --color-error-foreground: var(--color-error-foreground);
 
   --color-linkedin: var(--color-linkedin);

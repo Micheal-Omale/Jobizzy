@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(npx kill-port *)",
+      "Bash(NUXT_IGNORE_LOCK=1 npm run dev)",
+      "Bash(echo \"dev starting, pid $!\")",
+      "PowerShell(npm run typecheck)",
+      "PowerShell(npm run build 2>&1)",
+      "PowerShell(npm run build)",
+      "PowerShell($env:NUXT_PUBLIC_INSFORGE_URL=\"http://localhost\"; $env:NUXT_PUBLIC_INSFORGE_ANON_KEY=\"x\"; $p = Start-Process node -ArgumentList \".output/server/index.mjs\" -PassThru -RedirectStandardError \"$env:TEMP\\\\jderr.txt\" -RedirectStandardOutput \"$env:TEMP\\\\jdout.txt\"; Start-Sleep -Seconds 4; try { $r = Invoke-WebRequest \"http://localhost:3000/find-jobs/test-id-123\" -UseBasicParsing; Write-Output \"STATUS: $\\($r.StatusCode\\)\"; $hasBack = $r.Content -match 'Back to Jobs'; Write-Output \"Contains 'Back to Jobs': $hasBack\" } catch { Write-Output \"ERR: $_\" } finally { Stop-Process -Id $p.Id -Force })",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { try { Stop-Process -Id $_.OwningProcess -Force; Write-Output \"Killed PID $\\($_.OwningProcess\\)\" } catch {} }; Write-Output \"done\")"
+    ]
+  }
+}

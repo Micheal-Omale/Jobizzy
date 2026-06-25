@@ -6,10 +6,10 @@
 | ------------------------------ | --------------------------- | ------------------------------------------------- |
 | Framework                      | Nuxt 4 (Vue 3, Composition API) | Full stack framework                         |
 | Auth + DB + Storage + Realtime | InsForge                    | Entire backend                                   |
-| Cloud browser                  | Browserbase                 | Company research — browsing company public pages |
+| Cloud browser                  | Browserless                 | Company research — browsing company public pages |
 | AI browser control             | Stagehand                   | Company page interaction and content extraction  |
 | Job Discovery                  | Adzuna API                  | Job search and discovery                         |
-| AI model                       | OpenAI GPT-4o               | Matching, research synthesis, extraction         |
+| AI model                       | Gemini 2.5 (`gemini-2.5-flash`) | Matching, research synthesis, extraction     |
 | Analytics                      | PostHog                     | Event tracking and dashboard charts              |
 | PDF generation                 | pdfmake                     | Resume PDF rendering                             |
 | Styling                        | Tailwind CSS v4 + shadcn-vue | UI components and styling                        |
@@ -98,16 +98,16 @@
 │   └── utils/
 │       ├── insforge.ts                     → Server-side InsForge client (H3 event-bound)
 │       ├── posthog.ts                      → PostHog server client (posthog-node; added with features 10/13 for server-side event capture)
-│       └── browserbase.ts                  → Browserbase session creation + management
+│       └── browserless.ts                  → Browserless CDP connection helper
 ├── agent/
-│   ├── adzuna.ts                           → Adzuna API job discovery + GPT-4o scoring
-│   ├── research.ts                         → Company research — Browserbase + Stagehand + GPT-4o
-│   ├── matcher.ts                          → GPT-4o job matching logic
-│   ├── extractor.ts                        → GPT-4o job description extraction + structuring
+│   ├── adzuna.ts                           → Adzuna API job discovery + Gemini 2.5 scoring
+│   ├── research.ts                         → Company research — Browserless + Stagehand + Gemini 2.5
+│   ├── matcher.ts                          → Gemini 2.5 job matching logic
+│   ├── extractor.ts                        → Gemini 2.5 job description extraction + structuring
 │   └── types.ts                            → Agent-specific TypeScript types
 ├── lib/
 │   ├── adzuna.ts                           → Adzuna API client
-│   ├── stagehand.ts                        → Stagehand initialisation with Browserbase session
+│   ├── stagehand.ts                        → Stagehand initialisation over Browserless CDP
 │   └── utils.ts                            → Shared utility functions
 └── types/
     └── index.ts                            → Global TypeScript types
@@ -156,7 +156,7 @@ Calls agent/adzuna.ts
         ↓
 Adzuna API returns job listings
         ↓
-GPT-4o scores each job against user profile
+Gemini 2.5 scores each job against user profile
         ↓
 Agent writes results to InsForge DB
         ↓
@@ -172,11 +172,11 @@ Nitro route — server/api/agent/research.post.ts
         ↓
 Calls agent/research.ts
         ↓
-Single Browserbase session opens with Stagehand
+Single Browserless browser opens with Stagehand (over CDP)
         ↓
 Navigates to company homepage + sub pages
         ↓
-GPT-4o synthesizes dossier from extracted content
+Gemini 2.5 synthesizes dossier from extracted content
         ↓
 Dossier saved to jobs.company_research
         ↓
@@ -190,7 +190,7 @@ User uploads resume or clicks Generate
         ↓
 Nitro route — server/api/resume/
         ↓
-GPT-4o processes content
+Gemini 2.5 processes content
         ↓
 pdfmake renders PDF buffer
         ↓
@@ -267,7 +267,7 @@ URL saved to profiles table
 | benefits           | text[]      | Optional                                       |
 | about_company      | text        | Brief company description                      |
 | match_score        | integer     | 0-100 scored against main profile              |
-| match_reason       | text        | GPT-4o explanation                             |
+| match_reason       | text        | Gemini 2.5 explanation                             |
 | matched_skills     | text[]      | Skills user has that match                     |
 | missing_skills     | text[]      | Skills user lacks                              |
 | company_research   | jsonb       | Company dossier from research agent            |
@@ -356,14 +356,14 @@ export const createInsforgeServer = (event: H3Event) => {
 
 ---
 
-## Browserbase Session Pattern
+## Browserless Connection Pattern
 
 ```typescript
-// Company research session — single session, sequential page visits
-const session = await bb.sessions.create({
-  projectId: process.env.BROWSERBASE_PROJECT_ID!,
-  timeout: 120, // 2 minute session — visits 3-4 pages max
-});
+// Company research — connect Stagehand to a remote Chrome over CDP (Browserless).
+// No separate session SDK call; the CDP URL is the whole connection.
+const cdpUrl = `${process.env.BROWSERLESS_WS_URL}?token=${process.env.BROWSERLESS_API_KEY}`;
+// The browser runs on Browserless cloud but is driven live from this Nitro handler —
+// the handler stays alive for the full run (~120s). Run it as a background task.
 ```
 
 ---
@@ -394,14 +394,14 @@ const data = await response.json();
 ## Company Research Pattern
 
 ```typescript
-// Single session — visits company homepage and sub pages sequentially
+// Single browser — visits company homepage and sub pages sequentially
 const stagehand = new Stagehand({
-  env: "BROWSERBASE",
-  apiKey: process.env.BROWSERBASE_API_KEY!,
-  projectId: process.env.BROWSERBASE_PROJECT_ID!,
-  browserbaseSessionID: session.id,
-  modelName: "gpt-4o",
-  modelClientOptions: { apiKey: process.env.OPENAI_API_KEY! },
+  env: "LOCAL", // connect to remote Chrome over CDP (Browserless)
+  localBrowserLaunchOptions: {
+    cdpUrl: `${process.env.BROWSERLESS_WS_URL}?token=${process.env.BROWSERLESS_API_KEY}`,
+  },
+  modelName: "google/gemini-2.5-flash",
+  modelClientOptions: { apiKey: process.env.GEMINI_API_KEY! },
 });
 
 await stagehand.init();
@@ -422,7 +422,7 @@ try {
   await page.waitForLoadState("networkidle");
   const content = await stagehand.extract({ instruction: "..." });
 } catch (error) {
-  // Log and continue — GPT-4o will synthesize from what was found
+  // Log and continue — Gemini 2.5 will synthesize from what was found
   await logAgentError(jobId, error);
 }
 
@@ -442,8 +442,8 @@ Rules the AI agent must never violate:
 - All InsForge server-side writes use `createInsforgeServer(event)` — never the browser client.
 - No hardcoded hex values or raw Tailwind color classes in components — use CSS variables from ui-tokens.md.
 - Every Stagehand action is wrapped in try/catch. Failures are logged to agent_logs, never thrown to crash the run.
-- Company research always returns a dossier — even if browser research fails, GPT-4o synthesizes from company name and job description alone. Never return empty.
-- Browserbase sessions are always closed with stagehand.close() when done — never leave sessions open.
+- Company research always returns a dossier — even if browser research fails, Gemini 2.5 synthesizes from company name and job description alone. Never return empty.
+- The Browserless browser is always closed with stagehand.close() when done — never leave a browser open.
 - Always scope InsForge queries to the current user_id — never query without a user filter.
 - Adzuna API always includes category=it-jobs — never search without this filter.
 - jobs.source is always 'search' or 'url' — never any other value.

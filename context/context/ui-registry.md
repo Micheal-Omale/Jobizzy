@@ -177,4 +177,218 @@ Reusable "coming soon" stub for routes whose real UI is built in a later phase. 
 | Note            | `text-[12px] leading-4 text-text-muted`                              |
 
 **Pattern notes:**
-Used by the stub pages `app/pages/profile.vue` (feat 05), `app/pages/find-jobs/index.vue` (feat 09), `app/pages/find-jobs/[id].vue` (feat 12). Shares the same shell + Card as the dashboard stub. Delete usages as each real page is built.
+Used by the stub pages `app/pages/profile.vue` (feat 05 — **now replaced by the real page**), `app/pages/find-jobs/index.vue` (feat 09), `app/pages/find-jobs/[id].vue` (feat 12). Shares the same shell + Card as the dashboard stub. Delete usages as each real page is built.
+
+---
+
+## Profile Page (Feature 05)
+
+`app/pages/profile.vue` replaces its PagePlaceholder stub. Page shell: `w-full border-x border-border bg-surface px-6 py-10 md:px-8`, inner column `mx-auto flex max-w-[880px] flex-col gap-6`. Composes `<ProfileCompletionIndicator>`, `<ProfileResumeUpload>`, `<ProfileForm>`. UI + mock data only — no save logic (feature 06). **Cover Letter Tone is intentionally omitted** — it is in the design's source of truth (`designs/profile.png`) as absent, and cover letters are out of scope per `project-overview.md`.
+
+### Primary Button (now built)
+
+Files: `app/components/profile/ProfileForm.vue` (Save Profile), `app/components/profile/ResumeUpload.vue` (Generate Resume from Profile)
+Last updated: 2026-06-24
+
+| Property      | Class                                                        |
+| ------------- | ------------------------------------------------------------ |
+| Background    | `bg-accent` → `hover:bg-accent-dark`                         |
+| Text          | `text-accent-foreground` `text-[14px] font-medium`          |
+| Border radius | `rounded-md`                                                |
+| Spacing       | `px-4 py-3` (full-width Save) / `px-4 py-2.5` (inline)       |
+| Icon          | optional leading 16px inline SVG (`h-4 w-4`, `currentColor`) |
+
+**Pattern notes:**
+The canonical accent primary button (ui-tokens "Primary"), previously unbuilt. Full-width variant adds `w-full`. Inline variant uses `inline-flex items-center justify-center gap-2`.
+
+### Form Field — label + input/select/textarea
+
+File: `app/components/profile/ProfileForm.vue`
+Last updated: 2026-06-24
+
+| Element       | Class                                                                                                                                                 |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label         | `mb-1.5 block text-[12px] font-medium uppercase tracking-wide text-text-secondary`                                                                   |
+| Input         | `w-full rounded-md border border-border bg-surface px-3 py-2.5 text-[14px] text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent` |
+| Disabled input| (email, read-only) `bg-surface-secondary text-text-secondary cursor-not-allowed`                                                                     |
+| Select        | input classes + `cursor-pointer appearance-none pr-9`, wrapped in `relative` with a `pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted` chevron SVG |
+| Textarea      | input classes + `resize-y`, `rows="3"`                                                                                                               |
+| Checkbox      | `h-4 w-4 rounded border-border accent-accent` (native `accent-color` tinted to the token)                                                            |
+| Grid          | `grid grid-cols-1 gap-4 md:grid-cols-2`; full-width fields use a single-column wrapper                                                               |
+
+**Pattern notes:**
+Class strings are defined once in `<script setup>` (`inputClass`, `selectClass`, `labelClass`, `addButtonClass`) and bound via `:class` to avoid drift. Inputs are `py-2.5` (≈40px tall) — slightly taller than the ui-tokens `py-2` baseline, to match the design. Section titles: `text-[14px] font-semibold text-text-primary`; sections separated by `border-t border-border pt-6/pt-8`. Selects/enum options are sourced from the `~~/types` enum unions (first consumer of `types/index.ts`).
+
+### Tag / Chip Input (skills, industries)
+
+File: `app/components/profile/ProfileForm.vue`
+Last updated: 2026-06-24
+
+- Row: input (`flex-1`) + secondary **Add** button (`shrink-0 rounded-md border border-border bg-surface px-4 py-2.5 text-[14px] font-medium text-text-primary hover:bg-surface-secondary`). Enter key also adds.
+- Chip: `inline-flex items-center gap-1.5 rounded-full bg-accent-light px-3 py-1 text-[12px] font-medium text-accent` with a trailing × button (`h-3 w-3` SVG, `hover:opacity-70`).
+
+Add/remove are local state only (no persistence until feature 06).
+
+### Work Experience role card
+
+File: `app/components/profile/ProfileForm.vue`
+Last updated: 2026-06-24
+
+- Nested sub-card: `rounded-xl border border-border bg-surface-secondary p-4` (a card-inside-a-card — the one place a non-white nested surface is used, to group a repeatable role).
+- Up to **3** roles; "Add role" accent text+plus link in the section header, hidden at the cap. "Remove role" muted text button shows only when `roles.length > 1` (so the default single-role view matches the design exactly).
+- Dates are native `<input type="month">` (renders "January 2022"). "Currently working here" checkbox sits top-right of the End Date label row and disables the end-date input (`disabled:bg-surface-tertiary disabled:text-text-muted`).
+
+### Profile Completion Banner (`app/components/profile/CompletionIndicator.vue`)
+
+File: `app/components/profile/CompletionIndicator.vue`
+Last updated: 2026-06-24
+
+Props: `percentage: number`, `missingFields: string[]`.
+
+| Property      | Class / value                                                                       |
+| ------------- | ----------------------------------------------------------------------------------- |
+| Card          | `rounded-2xl border border-error-light bg-error-lightest p-6` — **the one tinted (non-white) card**, a deliberate design-driven deviation from the "white cards only" rule for the attention state |
+| Heading       | red alert-circle SVG (`text-error`) + `text-[16px] font-semibold text-text-primary` |
+| Missing tags  | `rounded-full bg-error-light px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-error` |
+| Ring          | 88px SVG, two `r=40 stroke-width=8` circles: track `stroke="var(--color-border-light)"`, progress `stroke="var(--color-error)"` with `stroke-linecap="round"`, `-rotate-90`; `stroke-dashoffset = C·(1 − pct/100)`. Center `text-[20px] font-bold text-error`. |
+
+### Resume Upload card (`app/components/profile/ResumeUpload.vue`)
+
+File: `app/components/profile/ResumeUpload.vue`
+Last updated: 2026-06-24
+
+- Canonical white **Card**. Dashed dropzone: `rounded-xl border border-dashed border-border-muted bg-surface-secondary px-6 py-10 text-center`, accent upload-cloud SVG (`h-8 w-8 text-accent`), helper text, secondary **Select Resume** button.
+- Footer row (`border-t border-border pt-4`, `sm:flex-row sm:justify-between`): prompt text + primary **Generate Resume from Profile** button.
+- Presentational only — upload/extract/generate wired in features 06/07/08.
+
+### New tokens — error tints
+
+Added `--color-error-light` (#fee2e2) and `--color-error-lightest` (#fef2f2) to `main.css` (`:root` + `@theme inline`) for the attention banner surface and missing-field tags. Generated utilities: `bg-error-light`, `bg-error-lightest`, `border-error-light`, `text-error-light`, etc.
+
+### Consistency notes for future components (imprinted feat 05)
+
+- **Form-control height baseline is now `py-2.5`** (≈40px) for inputs, selects, textareas, and inline Add buttons. The earlier `py-2` ui-tokens baseline is still used by the standalone secondary button + OAuth buttons (`h-12`). **The next form UI (feature 09 search controls) should use `py-2.5`** to match the profile form, not `py-2`. Pick one deliberately.
+- **Profile skill/industry chips use `bg-accent-light text-accent`** — a richer lavender than the ui-tokens "Skills Badges → missing = `bg-accent-muted`" row. That token row governs the **job match badges** (feature 12), not these profile chips. When building matched/missing skill badges, use the token guide (`bg-success-lightest text-success-foreground` matched / `bg-accent-muted text-accent` missing) — do **not** copy the profile chip color.
+- **Radius nesting:** the Work Experience field group is 3 rounded levels deep (card `rounded-2xl` → role sub-card `rounded-xl` → input `rounded-md`), one past the ui-rules "max 2 levels" guidance. Acceptable because the input reads as a control, not a nested container — but avoid adding a *fourth* rounded container inside a role.
+- **The attention banner is the only card without the canonical shadow** (border-only, intentional for the flatter attention state). Every other card keeps `shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]`.
+
+### Profile save wiring (Feature 06)
+
+The feature-05 components were wired to InsForge (client-side via `useProfile`). UI patterns added:
+
+- **Resume dropzone (now functional, `ResumeUpload.vue`)** — the dashed area is a `<button>` that opens a hidden `<input type="file" accept="application/pdf">` and accepts drag-and-drop; dragging toggles `border-accent bg-accent-muted`. A staged file shows a `rounded-md border border-border bg-surface-secondary px-3 py-2` row with a truncated filename + "Remove" (`hover:text-error`). When no file is staged but one is saved, a `text-success` check row reads "A résumé is on file…" alongside a **"View résumé"** `text-accent` button (`getResumeObjectUrl()` → `storage.download` → blob URL → `window.open`, since the bucket is private). Client-side PDF/≤5MB guard surfaces a `text-[13px] text-error` message. Bound to the page via `v-model:file`. The Save button shows a distinct **"Uploading résumé…"** phase (vs "Saving…") while the slow S3 upload runs.
+- **Form save feedback (`ProfileForm.vue`)** — the Save row (`mt-6 flex … sm:justify-end`) shows a `text-[13px] font-medium` status line with three states: success `text-success-foreground` (`role="status"`), error `text-error` (`role="alert"`), and **warning `text-warning`** (profile saved but the résumé upload failed/timed out — still `role="status"`). The Save button gains `disabled:cursor-not-allowed disabled:opacity-60`, label swaps to "Saving…", and is `w-full sm:w-auto` (full-width on mobile, inline on desktop) — a refinement of the feat-05 full-width-only button.
+- **Page load skeleton (`profile.vue`)** — while the profile fetches (and as the `<ClientOnly>` fallback), two stacked `animate-pulse rounded-2xl border border-border bg-surface-secondary` blocks (`h-40` banner + `h-[760px]` form) stand in. Reusable pattern for client-fetched pages.
+- **Empty select option** — every enum `<select>` now leads with `<option value="">Select…</option>`; a blank maps to `null` on save. New users see "Select…" rather than a forced first value.
+
+### Résumé extraction (Feature 07)
+
+Files: `app/components/profile/ResumeUpload.vue` (Extract button), `app/pages/profile.vue` (review notice)
+Last updated: 2026-06-24
+
+- **Extract from Resume button** — an **outline accent** button variant (new): `inline-flex w-full items-center justify-center gap-2 rounded-md border border-accent px-4 py-2.5 text-[14px] font-medium text-accent hover:bg-accent-light disabled:cursor-not-allowed disabled:opacity-60` with a leading 16px sparkle SVG (same glyph as "Generate Resume from Profile"). Shown when a résumé is available (`file || resumeUrl`). Label swaps to **"Extracting…"** while the POST runs; errors reuse the card's existing `text-[13px] text-error` line. This is the **outline counterpart** to the canonical filled accent **Primary Button** — use it for secondary AI actions on a card that already has a filled primary.
+- **Extract review notice (`profile.vue`)** — after extraction, a `role="status"` banner above the form: `rounded-md border border-accent bg-accent-light px-4 py-3 text-[13px] leading-5 text-accent` reading "Review the details pulled from your résumé below, then Save Profile." Distinct from the **red attention banner** (CompletionIndicator) — this accent-tinted strip is informational. Cleared on save.
+- **Form remount pattern** — `<ProfileForm :key="formKey">` is remounted (key bump) to apply extracted data, since the form seeds its refs from `initialProfile` only at setup. Reusable wherever externally-supplied data must replace a form's in-memory state.
+
+### Résumé generation (Feature 08)
+
+Files: `app/components/profile/ResumeUpload.vue` (Generate button), `app/pages/profile.vue` (on-file row refresh)
+Last updated: 2026-06-24
+
+- **Generate Resume from Profile button** — the existing **filled accent Primary Button** in the card footer, now wired: `:disabled="generating"` with the canonical `disabled:cursor-not-allowed disabled:opacity-60`, label swaps to **"Generating…"** while the POST runs. Same sparkle glyph as the Extract button. Errors reuse the card's shared `text-[13px] text-error` line (including the min-field gate message). On success it opens the generated PDF in a new tab (blob, like View résumé) and emits `generated` with the new URL.
+- **On-file row refresh (`profile.vue`)** — `handleGenerated(url)` patches `resume_pdf_url` onto both the saved `profile` and `formSeed` (spread, no other field touched), so the **"A résumé is on file"** row + **View résumé** action appear/update immediately without a re-fetch. Reusable pattern for any single-field, server-confirmed update to a client-held row.
+- **Component now takes `:profile`** — `ResumeUpload` receives the last-saved `Profile` (the generation source) alongside `:resume-url` and `v-model:file`.
+
+---
+
+## Find Jobs Page (Feature 09)
+
+`app/pages/find-jobs/index.vue` replaces its PagePlaceholder stub. **Page shell is gray, not white** — `min-h-[calc(100vh-5rem)] w-full bg-background px-6 py-8 md:px-8` (overrides the layout's white `main`), inner column `mx-auto flex max-w-[1160px] flex-col gap-6`. Cards sit on the gray background so they read as separate panels (the design-driven counterpart to the profile page's white `bg-surface` shell). Composes `<FindJobsSearchControls>`, then a `gap-4` group of `<FindJobsFilters>` + `<FindJobsTable>`. UI + mock data only — search/filter/sort/paging logic is features 10/11. Built to `designs/find-jobs.png`; **no SOURCE column** (design omits it, though build-plan lists one).
+
+### Match Score Bar (`app/components/find-jobs/MatchScoreBar.vue`)
+
+File: `app/components/find-jobs/MatchScoreBar.vue`
+Last updated: 2026-06-24
+
+Props: `score: number`. Reusable inline progress bar + percentage (also feeds the feature-12 job-details score).
+
+| Element     | Class / value                                                                 |
+| ----------- | ----------------------------------------------------------------------------- |
+| Track       | `h-1.5 w-16 overflow-hidden rounded-full bg-border-light`                      |
+| Fill        | `h-full rounded-full` + color class, `:style="{ width: `${score}%` }"`        |
+| Percentage  | `text-[14px] font-semibold text-text-primary`                                 |
+| Row         | `flex items-center gap-2.5`                                                    |
+
+**Score color thresholds (read off the design — overrides ui-tokens/ui-rules):** `score >= 90` → `bg-success` (green); `>= 80` → `bg-info` (blue); else `bg-warning` (orange). The design colors 94/96/91 green, 88/85 blue, 72 orange — design is the source of truth.
+
+### Search Controls (`app/components/find-jobs/SearchControls.vue`)
+
+File: `app/components/find-jobs/SearchControls.vue`
+Last updated: 2026-06-24 (feature 10 — wired to the Adzuna agent)
+
+- Canonical white **Card** (`rounded-2xl border border-border bg-surface p-6` + shadow). Row `flex flex-col gap-4 md:flex-row md:items-end`: two flex-1 fields (**Job Title**, **Location**) + the **Find Jobs** accent button.
+- **Input with leading icon** — wrap input in `relative`; input is `w-full rounded-md border border-border bg-surface py-2.5 pl-9 pr-3 text-[14px] …` (the `py-2.5` form-control height, `pl-9` to clear the icon) with a `pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted` search SVG. Labels reuse the profile-form label class (`mb-1.5 block text-[12px] font-medium uppercase tracking-wide text-text-secondary`). Inputs `v-model` to `jobTitle`/`location`, `@keyup.enter` submits, `disabled` (with `disabled:opacity-60`) while loading.
+- **Find Jobs button** — accent primary at input height: `inline-flex items-center justify-center gap-2 rounded-md bg-accent px-5 py-2.5 text-[14px] font-medium text-accent-foreground hover:bg-accent-dark disabled:opacity-60`. Leading 16px search SVG, swapped for an `animate-spin` spinner + "Searching…" label while the request is in flight. Click → `$fetch('/api/agent/find', { jobTitle, location })`.
+- **Result banner (conditional)** — shown only after a search. Success (`v-if="result"`): same `border-success-light bg-success-lightest … text-success-foreground` card with the `text-success` sparkles SVG and `role="status"`, text now **dynamic** — "Found {count} job(s) and saved {strongMatches} strong match(es)." Error (`v-else-if="errorMessage"`): `rounded-xl border border-error bg-surface px-4 py-3 text-[14px] font-medium text-error`, `role="alert"`. (The job table + filters below still read mock data — DB wiring is feature 11.)
+
+### Job Filters (`app/components/find-jobs/Filters.vue`)
+
+File: `app/components/find-jobs/Filters.vue`
+Last updated: 2026-06-25 (feature 11 — wired to shared useJobs state)
+
+- Bar on the gray background (no card): `flex flex-col gap-3 sm:flex-row sm:items-center`. A flex-1 icon-input ("Filter by company or role…", same leading-icon pattern as SearchControls) + a `gap-3` group of two styled native `<select>`s.
+- **Select (button-style)** — `cursor-pointer appearance-none rounded-md border border-border bg-surface py-2.5 pl-4 pr-9 text-[14px] font-medium text-text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent`, wrapped in `relative` with a `pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted` chevron SVG.
+- **Wired (feature 11):** `v-model`s the shared `useJobs()` state — input → `query`, match select → `matchFilter` (`all`/`high`/`low`), sort select → `sort` (`score`/`newest`/`oldest`). `Table.vue` derives its rows from these reactively; this component holds no local state.
+
+### Jobs Table (`app/components/find-jobs/Table.vue`)
+
+File: `app/components/find-jobs/Table.vue`
+Last updated: 2026-06-25 (feature 11 — filter/sort/search wired)
+
+- **Real data** via `useJobs()` (shared `useState` list, newest-first by `found_at`). Mock rows removed. `app/composables/useJobs.ts` exposes `jobs`/`filteredJobs`/`loading`/`loaded`/`query`/`matchFilter`/`sort`/`refresh`; the page loads it on mount (`onMounted` → `ensureLoaded` → `refresh`), and `SearchControls` calls `refresh()` after a run so a completed search appears immediately.
+- **Filter/sort (feature 11):** the table paginates `filteredJobs` (a computed in `useJobs` applying match filter + case-insensitive company/title search + sort over the in-memory list — all client-side, no re-query). Controls live in `Filters.vue`. Page resets to 1 on any `filteredJobs`/`query`/`matchFilter`/`sort` change.
+- White **Card** with `overflow-hidden` wrapping an `overflow-x-auto` scroller + semantic `<table class="w-full min-w-[760px] border-collapse">`.
+- **Header** (`<thead class="bg-surface-secondary">`): th = `px-6 py-3 text-left text-[12px] font-medium uppercase tracking-wide text-text-secondary`. Columns: Company, Role, Match Score, Salary Est., Date Found.
+- **States**: `loading && !loaded` → centered "Loading jobs…" row (`colspan=5`); `loaded && hasJobsButNoMatches` (jobs exist but filtered out) → "No matching jobs" + "Try adjusting your filters…"; `loaded && total===0` (no jobs at all) → "No jobs yet" + "Run a search above…"; else the rows.
+- **Rows**: `<tr class="cursor-pointer border-t border-border hover:bg-surface-secondary">`, click → `navigateTo('/find-jobs/{id}')` (job details, feature 12). Cells `px-6 py-4 text-[14px]`. Company = `h-9 w-9 rounded-md border` logo placeholder (building SVG) + `font-semibold` name (`job.company`). Role = `job.title`, Salary = `job.salary ?? '—'`, Date Found = `formatRelativeTime(job.found_at)` (`lib/utils.ts`). Match Score renders `<FindJobsMatchScoreBar :score="job.match_score ?? 0">`.
+- **Pagination footer** (shown only when `total > 0`): real **client-side paging**, `PAGE_SIZE = 20`. "Showing {rangeStart} to {rangeEnd} of {total} results". Pager appears only when `pageCount > 1`: Previous/Next (disabled at bounds, `disabled:opacity-50`) + compact numbered buttons (`pageItems` windows with `…` when >7 pages). Active page = `border border-accent bg-accent text-accent-foreground`.
+
+---
+
+## Job Details Page (Feature 12)
+
+`app/pages/find-jobs/[id].vue` replaces its PagePlaceholder stub. **Gray page shell** (same as find-jobs: `min-h-[calc(100vh-5rem)] w-full bg-background px-6 py-8 md:px-8`) but a **narrower single column** `mx-auto flex max-w-[820px] flex-col gap-6` (the design centers one column). Composes, top to bottom: a **Back to Jobs** `NuxtLink` (`inline-flex w-fit items-center gap-1.5 text-[14px] font-medium text-text-secondary hover:text-text-primary` + chevron-left), then `<JobDetailsHeader>`, `<JobDetailsInfoCards>`, `<JobDetailsMatchReasoning>`, `<JobDetailsSkillsComparison>`, `<JobDetailsJobDescription>`, `<JobDetailsCompanyResearch>`, and the **Apply Now** button. Real DB data via `useJobs().fetchJob(id)` (RLS-scoped single-row read), loaded in `onMounted` after `ensureLoaded()`. Three page states: **loading skeleton** (stacked `h-28`/`h-20`/`h-40 animate-pulse rounded-2xl border border-border bg-surface-secondary` blocks), **"Job not found"** card (canonical card, centered), and the details. All section cards use the canonical white **Card** (`rounded-2xl border border-border bg-surface p-6` + shadow).
+
+### Job Details — section label vs heading conventions
+
+Two label styles, matched to the design: the top two cards use a **small uppercase label** `text-[12px] font-semibold uppercase tracking-wide text-text-secondary` ("AI Match Reasoning", "Required Skills vs Your Profile"); the bottom two use a **titlecase heading** `text-[16px] font-semibold leading-6 text-text-primary` ("Job Description", "Company Research"). Each leads with a 16px inline lucide-style SVG (`h-4 w-4`): sparkle `text-accent` (match reasoning), file-text `text-text-secondary` (job description), building `text-text-secondary` (company research).
+
+### Job Header card (`app/components/job-details/Header.vue`)
+
+Props: `job: Job`. Logo placeholder = `h-14 w-14 shrink-0 rounded-xl border border-border bg-surface-secondary text-text-muted` building SVG (`h-6 w-6`). Title `text-[24px] font-bold leading-8 text-text-primary`. Sub-row (`mt-1.5 flex flex-wrap items-center gap-2 text-[14px]`): company `text-text-secondary` + chevron-right (`h-3.5 w-3.5 text-text-muted`) + **match score** `font-semibold` colored text. **View Job Post** = top-right text link (`inline-flex shrink-0 items-center gap-1.5 text-[13px] font-medium text-text-secondary hover:text-text-primary` + external-link SVG), `<a target="_blank" rel="noopener noreferrer">` → `external_apply_url ?? source_url`, hidden when neither exists.
+
+**Header match-score color (distinct from `MatchScoreBar`):** colored text, not a bar — `90+` → `text-success`, `>= MATCH_THRESHOLD` (70) → `text-warning` (amber), else `text-error`. This renders the design's amber 86% (the bar's 90/80 scale would show blue). Intentional; the bar component is unchanged.
+
+### Job Info Cards (`app/components/job-details/InfoCards.vue`)
+
+Props: `job: Job`. Row `grid grid-cols-2 gap-4 lg:grid-cols-4`. Each card `flex items-center gap-3 rounded-2xl border border-border bg-surface p-4` + shadow: a `h-9 w-9 shrink-0 rounded-lg` tinted icon chip + (value `truncate text-[14px] font-semibold text-text-primary` / label `text-[11px] font-medium uppercase tracking-wide text-text-muted`). Chip tints per card: **Salary** `bg-success-lightest text-success` (dollar), **Location** `bg-info-lightest text-info-dark` (map-pin), **Job Type** `bg-surface-tertiary text-text-secondary` (briefcase), **Date Found** `bg-accent-light text-accent` (calendar). `job_type` humanized (`fulltime`→"Full-time"…); all values fall back to `—` / `formatRelativeTime` for the date.
+
+### Skill badges — matched vs gap (`app/components/job-details/SkillsComparison.vue`)
+
+Props: `job: Job` (reads `matched_skills`/`missing_skills`). Two groups under `text-[12px] font-medium text-text-secondary` sublabels ("You have" / "Gap skills"), each a `flex flex-wrap gap-2`. **Matched badge** (green): `inline-flex items-center gap-1.5 rounded-full bg-success-lightest px-3 py-1 text-[12px] font-medium text-success-foreground` + check SVG `h-3 w-3 text-success`. **Gap badge** (amber): same shape with `bg-warning-light text-warning-dark` + a plus SVG `h-3 w-3`. Groups hide when their array is empty; a no-skills fallback line shows when both are empty. **This green/amber split (design-driven) overrides the feat-05 note that pointed missing badges at `bg-accent-muted`** — that guidance does not apply to the job-details design.
+
+### Job Description card (`app/components/job-details/JobDescription.vue`)
+
+Props: `job: Job`. Renders `about_role` in a `whitespace-pre-line text-[14px] leading-6 text-text-secondary` paragraph — **no line-clamp** (the full stored text always shows). Adzuna's search API only returns a **truncated snippet** (ends in an ellipsis), so when the text is truncated (`endsWith('…' | '...')`) and a posting URL exists, a footer (`mt-4 … border-t border-border pt-4 text-[13px]`) shows "This is a preview from the job board." + a **Read the full description** accent link (`text-accent hover:text-accent-dark` + external-link SVG) → `external_apply_url ?? source_url`. The full posting text is not in our DB — recovering it would require scraping the source (not done here).
+
+### Company Research card — empty state (`app/components/job-details/CompanyResearch.vue`)
+
+Props: `companyName: string | null`. Header row (`flex items-center justify-between`): building icon + "Company Research" heading, and a **Research Company** button on the right (`inline-flex shrink-0 items-center gap-2 rounded-md bg-accent px-4 py-2 text-[13px] font-medium text-accent-foreground hover:bg-accent-dark` + search SVG). **Button is inert in feature 12** — the research agent is wired in feature 13 (kept visually active to match the design; flagged with a code comment). Empty state: centered `flex flex-col items-center justify-center gap-2 py-10 text-center` — building SVG `h-8 w-8 text-text-muted`, "No research yet" (`text-[14px] font-medium text-text-secondary`), and the design copy interpolating `{companyName}` (`max-w-sm text-[13px] leading-5 text-text-muted`). The full 9-field dossier render is feature 13.
+
+### Apply Now button (`app/pages/find-jobs/[id].vue`)
+
+Full-width accent CTA: `inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3.5 text-[15px] font-semibold text-accent-foreground hover:bg-accent-dark`. Renders as `<a target="_blank" rel="noopener noreferrer">` → `external_apply_url ?? source_url` with label "Apply Now at {company}"; when no URL exists, a `disabled` button variant (`cursor-not-allowed … opacity-60`, label "Apply Now"). A `rounded-xl` full-width primary — taller (`py-3.5`) than the form Primary Button.
+
+### New tokens — warning tints
+
+Added `--color-warning-light` (#ffedd5) and `--color-warning-dark` (#c2410c) to `main.css` (`:root` + `@theme inline`) for the gap-skill badges (`bg-warning-light text-warning-dark`). Same sanctioned `@theme inline` route as the feat-05 error tints.

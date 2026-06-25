@@ -52,7 +52,7 @@ The AI agent on this project operates as a senior engineer. This means:
 - Component files: PascalCase — `StatsBar.vue`, `RecentActivity.vue`
 - Page files: kebab-case matching the route, dynamic segments in brackets — `find-jobs/[id].vue`
 - Composable files: camelCase, prefixed `use` — `useProfile.ts`, `useJobs.ts`
-- Utility files: camelCase — `browserbase.ts`, `posthog.ts`
+- Utility files: camelCase — `browserless.ts`, `posthog.ts`
 - Type files: camelCase — `index.ts`
 - Nitro route files: always `<name>.<method>.ts` — `find.post.ts`, `generate.post.ts`
 - One component per file — never export multiple components from one `.vue` file
@@ -273,9 +273,9 @@ All environment variables defined in `.env` for development. Never hardcode any 
 | ------------------------- | -------------------------------------------- | ----------------------- |
 | `NUXT_PUBLIC_INSFORGE_URL`      | `runtimeConfig.public.insforgeUrl`      | composables/useInsforge.ts |
 | `NUXT_PUBLIC_INSFORGE_ANON_KEY` | `runtimeConfig.public.insforgeAnonKey`  | composables/useInsforge.ts |
-| `BROWSERBASE_API_KEY`           | `runtimeConfig.browserbaseApiKey`       | server/utils/browserbase.ts |
-| `BROWSERBASE_PROJECT_ID`        | `runtimeConfig.browserbaseProjectId`    | server/utils/browserbase.ts |
-| `OPENAI_API_KEY`                | `runtimeConfig.openaiApiKey`            | agent/ functions        |
+| `BROWSERLESS_API_KEY`           | `runtimeConfig.browserlessApiKey`       | server/utils/browserless.ts |
+| `BROWSERLESS_WS_URL`            | `runtimeConfig.browserlessWsUrl`        | server/utils/browserless.ts |
+| `GEMINI_API_KEY`                | `runtimeConfig.geminiApiKey`            | server/utils + agent/ functions |
 | `ADZUNA_APP_ID`                 | `runtimeConfig.adzunaAppId`             | lib/adzuna.ts            |
 | `ADZUNA_APP_KEY`                | `runtimeConfig.adzunaAppKey`            | lib/adzuna.ts            |
 | `NUXT_PUBLIC_POSTHOG_KEY`       | `posthogConfig.publicKey` → `runtimeConfig.public.posthog.publicKey` | nuxt.config.ts (`@posthog/nuxt`) |
@@ -319,7 +319,7 @@ Server-side code uses the `~/` alias (resolves to project root) for `server/` an
 
 - No comments explaining what the code does — code must be self-explanatory
 - Comments only for why — explaining a non-obvious decision
-- Agent functions may have a brief comment explaining the Browserbase or Stagehand strategy
+- Agent functions may have a brief comment explaining the Browserless or Stagehand strategy
 - Never leave TODO comments in committed code
 
 ---
@@ -335,9 +335,8 @@ Never install a new package without a clear reason. Before installing anything c
 Approved dependencies for this project:
 
 - `@insforge/sdk` — InsForge client (browser: `createClient`; server: `@insforge/sdk/ssr` `createServerClient`). NOTE: earlier drafts and the patterns in `architecture.md` / `library-docs.md` reference `@insforge/ssr` — that package name is wrong; the real package is `@insforge/sdk`, confirmed against the live InsForge MCP docs.
-- `@browserbasehq/sdk` — Browserbase sessions
-- `@browserbasehq/stagehand` — AI browser control
-- `openai` — GPT-4o API
+- `@browserbasehq/stagehand` — AI browser control (connects to Browserless over CDP; no Browserbase SDK needed)
+- `@google/genai` — Gemini 2.5 API
 - `@posthog/nuxt` — official PostHog Nuxt module. Provides the browser client (bundles `posthog-js`, mounted via its Vue plugin) and a Nitro server plugin (bundles `posthog-node`, with automatic `shutdown()` on close). Chosen over hand-rolling separate `posthog-js` + `posthog-node` plugins — it covers both the client and server integration that feature 03 requires. Access the client in code via the module's auto-imported `usePostHog()` composable, wrapped by `useAnalytics()`.
 - `pdfmake` — Resume PDF generation
 - `pdf-parse` — Extract text from uploaded PDF

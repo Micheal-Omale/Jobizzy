@@ -30,58 +30,49 @@ Never rely on general training knowledge alone for library APIs — they change 
 
 **Check first:** Check AGENTS.md for an installed InsForge skill. If an InsForge MCP server is configured — use it. The skill/MCP will have the latest API patterns.
 
-### Client vs Server
+### Client vs Server (SSR auth — verified against the installed SDK, feature 10)
 
-Two separate instances — never mix them:
+SSR lives at the **`@insforge/sdk/ssr`** subpath — it is part of `@insforge/sdk` (already installed), **NOT** a separate `@insforge/ssr` package. The session lives in cookies: non-httpOnly `insforge_access_token` (bearer the browser client reads for DB/Storage/Functions) + httpOnly `insforge_refresh_token` (server-owned). Both clients take a **single options object** (`{ baseUrl, anonKey, … }`), not positional args.
 
 ```typescript
-// app/composables/useInsforge.ts — browser context only
-import { createBrowserClient } from "@insforge/ssr";
+// app/composables/useInsforge.ts — browser context only. auth is READ-ONLY here
+// (getCurrentUser); sign-in / OAuth exchange / sign-out run server-side.
+import { createBrowserClient } from "@insforge/sdk/ssr";
 
-export const useInsforge = () => {
+export function useInsforge() {
   const config = useRuntimeConfig();
-  return createBrowserClient(
-    config.public.insforgeUrl,
-    config.public.insforgeAnonKey,
-  );
-};
+  return createBrowserClient({
+    baseUrl: config.public.insforgeUrl,
+    anonKey: config.public.insforgeAnonKey,
+    refreshUrl: "/api/auth/refresh", // a Nitro route; client hits it to refresh
+  });
+}
 ```
 
 ```typescript
-// server/utils/insforge.ts — server context only
-import { createServerClient } from "@insforge/ssr";
-import type { H3Event } from "h3";
-import { parseCookies, setCookie } from "h3";
+// server/utils/insforge.ts — server context only. Reads the access-token cookie
+// and uses it as the per-request bearer (cookies takes a `get`, not getAll/setAll).
+import { createServerClient } from "@insforge/sdk/ssr";
+import { getCookie, type H3Event } from "h3";
 
-export const createInsforgeServer = (event: H3Event) => {
+export function createInsforgeServer(event: H3Event) {
   const config = useRuntimeConfig();
-  return createServerClient(
-    config.public.insforgeUrl,
-    config.public.insforgeAnonKey,
-    {
-      cookies: {
-        getAll: () =>
-          Object.entries(parseCookies(event)).map(([name, value]) => ({
-            name,
-            value,
-          })),
-        setAll: (cookiesToSet) => {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            setCookie(event, name, value, options),
-          );
-        },
-      },
-    },
-  );
-};
+  return createServerClient({
+    baseUrl: config.public.insforgeUrl,
+    anonKey: config.public.insforgeAnonKey,
+    cookies: { get: (name: string) => getCookie(event, name) },
+  });
+}
 ```
+
+**Auth mutations are server-side** via `createAuthActions({ baseUrl, anonKey, cookies })` (cookies = an h3 read+write `CookieStore` adapter). OAuth is PKCE and must be initiated AND exchanged on the server — SSR browser clients do not auto-exchange callbacks. See `server/api/auth/{oauth-start,oauth-callback,refresh,signout}.post.ts`.
 
 **Rules:**
 
-- Browser client — components, composables, browser-side auth state, realtime subscriptions
-- Server client — Nitro route handlers (`server/api/`), agent functions
-- Never use browser client in server context
-- Never use server client in browser context
+- Browser client — components, composables, browser-side session reads (`getCurrentUser`), realtime
+- Server client — Nitro route handlers (`server/api/`), agent functions; the ONLY way to act as the user
+- Never use browser client in server context, or server client in browser context
+- Never call `signInWithOAuth`/`signOut` on the browser client — they are not on its `auth` surface in SSR mode
 
 ---
 
@@ -93,7 +84,7 @@ const insforge = createInsforgeServer(event);
 const {
   data: { user },
   error,
-} = await insforge.auth.getUser();
+} = await insforge.auth.getCurrentUser();
 if (!user) {
   throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
 }
@@ -103,34 +94,36 @@ if (!user) {
 
 ### DB Queries
 
+The DB accessor is **`insforge.database.from(...)`** (same on browser and server clients). Inserts take an **object** (not an array).
+
 ```typescript
 // Read
-const { data, error } = await insforge
+const { data, error } = await insforge.database
   .from("jobs")
   .select("*")
   .eq("user_id", user.id)
   .order("found_at", { ascending: false });
 
-// Insert
-const { data, error } = await insforge
+// Insert (object form)
+const { data, error } = await insforge.database
   .from("jobs")
   .insert({ user_id: user.id, title, company, match_score })
   .select()
   .single();
 
 // Update
-const { error } = await insforge
+const { error } = await insforge.database
   .from("jobs")
   .update({ company_research: dossier })
   .eq("id", jobId)
-  .eq("user_id", user.id); // always scope to user
+  .eq("user_id", user.id); // always scope to user (profiles scope by `id`)
 ```
 
 **Rules:**
 
-- Always scope queries to `user_id` — never query without user filter
+- Always scope queries to the user — `user_id` for jobs/agent_runs, `id` for profiles
 - Always handle the `error` return — never assume success
-- Use `.single()` when expecting exactly one row
+- Use `.single()` when expecting exactly one row, `.maybeSingle()` when a row may not exist
 
 ---
 
@@ -258,39 +251,34 @@ const jobRecord = {
 - Never pass `where` if location is empty — omit the parameter entirely
 - `source` is always `'search'` for Adzuna jobs — never any other value
 - `salary_is_predicted: "1"` means Adzuna estimated the salary — this is normal
-- Adzuna description is a snippet — GPT-4o scores from it, not a full description
+- Adzuna description is a snippet — Gemini 2.5 scores from it, not a full description
 - Default country to `'us'` — support `gb`, `au`, `ca` as alternatives
+- **Implemented:** `lib/adzuna.ts` `searchJobs(jobTitle, location, appId, appKey, country?)` takes the keys as **params** (passed from `runtimeConfig.adzunaAppId/adzunaAppKey`), not `process.env`, so it stays testable. `detectCountry()`/`formatSalary()` live alongside it. Jobs are saved via `insforge.database.from("jobs").insert({...})` (object), `source:'search'`
 
 ---
 
-## Browserbase
+## Browserless
 
-**Check first:** Check AGENTS.md for an installed Browserbase skill. If a Browserbase MCP server is configured — use it. The skill/MCP will have the latest session management and API patterns.
+Browserbase is unavailable in our region, so the company-research browser runs on **Browserless** instead. Browserless exposes a remote Chrome over a CDP WebSocket; Stagehand connects to it directly — there is no separate session-creation SDK call.
 
-### Session Creation — Company Research
+**Connection — Company Research**
 
 ```typescript
-import Browserbase from "@browserbasehq/sdk";
-
-const bb = new Browserbase({ apiKey: process.env.BROWSERBASE_API_KEY! });
-
-// Single session for company research — sequential page visits
-const session = await bb.sessions.create({
-  projectId: process.env.BROWSERBASE_PROJECT_ID!,
-  timeout: 120, // 2 minute session — visits 3-4 pages max
-});
+// CDP WebSocket endpoint. Cloud: wss://production-sfo.browserless.io?token=...
+// Self-hosted: ws://<host>:3000?token=...
+const cdpUrl = `${process.env.BROWSERLESS_WS_URL}?token=${process.env.BROWSERLESS_API_KEY}`;
 ```
 
-**Important — Browserbase runs independently from your Nuxt server:**
-Browserbase sessions run on Browserbase's cloud infrastructure, not inside your Nitro route handler. The route triggers the Browserbase session and returns a response while the session continues running independently on Browserbase's platform. Do not add any timeout configuration to Nitro routes to accommodate Browserbase session length.
+**Important — how this differs from Browserbase:**
+The browser process runs on Browserless's cloud, but **your Nitro handler drives it live over the CDP socket** — it is not fire-and-forget. The route handler must stay alive for the whole research run (~120s of page visits). Make Company Research a background/long-running task and stream/poll status to the UI; do not assume a serverless function with a short timeout can host it.
 
 **Rules:**
 
-- Always use single sessions — never parallel sessions (free plan limit)
-- Session timeout is 120 seconds — sufficient for 3-4 page visits
-- Always end sessions cleanly — call stagehand.close() when done
-- Project ID always from `process.env.BROWSERBASE_PROJECT_ID` — never hardcode
-- Browserbase client lives in `lib/browserbase.ts` — always import from there
+- One CDP connection per research run — never open parallel browsers (free plan limit)
+- Budget ~120 seconds — sufficient for 3-4 page visits
+- Always end cleanly — call `stagehand.close()` (closes the Browserless browser)
+- Endpoint + token always from `process.env.BROWSERLESS_WS_URL` / `BROWSERLESS_API_KEY` — never hardcode
+- Browserless client lives in `server/utils/browserless.ts` — always import from there
 
 ---
 
@@ -304,16 +292,17 @@ Browserbase sessions run on Browserbase's cloud infrastructure, not inside your 
 import { Stagehand } from "@browserbasehq/stagehand";
 
 const stagehand = new Stagehand({
-  env: "BROWSERBASE",
-  apiKey: process.env.BROWSERBASE_API_KEY!,
-  projectId: process.env.BROWSERBASE_PROJECT_ID!,
-  browserbaseSessionID: session.id,
-  model: { modelName: "openai/gpt-4o", apiKey: process.env.OPENAI_API_KEY! },
+  env: "LOCAL", // connect to a remote browser over CDP (Browserless)
+  localBrowserLaunchOptions: {
+    cdpUrl: `${process.env.BROWSERLESS_WS_URL}?token=${process.env.BROWSERLESS_API_KEY}`,
+  },
+  modelName: "google/gemini-2.5-flash",
+  modelClientOptions: { apiKey: process.env.GEMINI_API_KEY! },
   disablePino: true,
 });
 
 await stagehand.init();
-const page = stagehand.context.activePage()!;
+const page = stagehand.page;
 ```
 
 ### extract()
@@ -361,7 +350,7 @@ Replace the existing Stagehand "Company Research Pattern" section in library-doc
 
 ### Company Research Pattern
 
-Three-step process: homepage extraction → sub-page extraction → GPT-4o synthesis.
+Three-step process: homepage extraction → sub-page extraction → Gemini 2.5 synthesis.
 Job description and user profile come from DB — never re-fetch what you already have.
 Browser's only job is the company website.
 
@@ -422,7 +411,7 @@ const subPageData = await stagehand.extract({
   }),
 });
 
-// Step 3 — GPT-4o synthesis (after browser closes)
+// Step 3 — Gemini 2.5 synthesis (after browser closes)
 // Feed three data sources: company research + job from DB + profile from DB
 const systemPrompt = `You are a sharp career strategist preparing a candidate to apply for a specific role. You are given (a) research collected from the company's own website, (b) the job posting, and (c) the candidate's profile. Produce a concise, concrete briefing that gives this specific candidate an edge for this specific role.
 
@@ -462,15 +451,17 @@ Experience: ${profile.years_experience} years, level ${profile.experience_level}
 Skills: ${profile.skills.join(", ")}
 Work history: ${JSON.stringify(profile.work_experience)}`;
 
-const response = await openai.chat.completions.create({
-  model: "gpt-4o",
-  response_format: { type: "json_object" },
-  temperature: 0.4,
-  messages: [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: userPrompt },
-  ],
+const ai = getGemini(); // shared GoogleGenAI client — server/utils/gemini.ts
+const response = await ai.models.generateContent({
+  model: "gemini-2.5-flash",
+  contents: userPrompt,
+  config: {
+    systemInstruction: systemPrompt,
+    responseMimeType: "application/json",
+    temperature: 0.4,
+  },
 });
+const dossier = JSON.parse(response.text!);
 ```
 
 **Dossier fields:**
@@ -491,44 +482,41 @@ const response = await openai.chat.completions.create({
 
 - Always use `extract()` with a Zod schema — never parse raw HTML or use regex
 - Always wrap every `act()` and `extract()` in try/catch
-- Always call `await stagehand.close()` when done — ends the Browserbase session
-- Model is always `gpt-4o` — never use other models
+- Always call `await stagehand.close()` when done — closes the Browserless browser
+- Model is always `gemini-2.5-flash` — never use other models
 - Temperature is `0.4` for synthesis — grounded but flexible enough to make real connections
 - Max 3 sub-pages — never exceed this on free plan
-- Always close session in finally block — never leave sessions open even if research fails
+- Always close the browser in a finally block — never leave a Browserless browser open even if research fails
 - Job description and profile always come from DB — never re-fetch via browser
 - If browser research returns empty — still run synthesis with job + profile only
 - yourEdge, gapsToAddress, and smartQuestions are the most valuable fields — never skip them
 
-## OpenAI GPT-4o
+## Gemini 2.5
 
-**Check first:** Check AGENTS.md for an installed OpenAI skill. The skill will have the latest API patterns and model capabilities.
+**Check first:** Use the shared `GoogleGenAI` client from `server/utils/gemini.ts` (`getGemini()`) — never construct a new client per call. The key is `GEMINI_API_KEY`, server-private via `runtimeConfig.geminiApiKey` (no `NUXT_` prefix — set it explicitly in `nuxt.config.ts`).
 
 ### Structured JSON Response
 
 ```typescript
-import OpenAI from "openai";
+import { getGemini } from "~/server/utils/gemini";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+const ai = getGemini();
 
-const response = await openai.chat.completions.create({
-  model: "gpt-4o",
-  response_format: { type: "json_object" },
-  temperature: 0.3,
-  messages: [
-    {
-      role: "system",
-      content: "You are a job matching assistant. Return only valid JSON.",
-    },
-    {
-      role: "user",
-      content: `Your prompt here`,
-    },
-  ],
+const response = await ai.models.generateContent({
+  model: "gemini-2.5-flash",
+  contents: `Your prompt here`,
+  config: {
+    systemInstruction: "You are a job matching assistant. Return only valid JSON.",
+    responseMimeType: "application/json",
+    // Optional: pass a `responseSchema` (Type.OBJECT) to constrain the shape
+    temperature: 0.3,
+  },
 });
 
-const result = JSON.parse(response.choices[0].message.content!);
+const result = JSON.parse(response.text!);
 ```
+
+Wrap `generateContent` in a small retry helper — `gemini-2.5-flash` throws transient `503 UNAVAILABLE` / `429` spikes under load (see `server/utils/extract-profile.ts` `generateWithRetry`).
 
 **Temperature settings:**
 
@@ -544,9 +532,9 @@ const result = JSON.parse(response.choices[0].message.content!);
 
 **Rules:**
 
-- Model string is always `'gpt-4o'` — never use other model names
-- Always use `response_format: { type: 'json_object' }` for structured data
-- Always parse `response.choices[0].message.content` as string — even with json_object it returns a string
+- Model string is always `'gemini-2.5-flash'` — never use other model names
+- Always set `config.responseMimeType: 'application/json'` (optionally a `responseSchema`) for structured data
+- Always parse `response.text` as string — JSON mode returns a JSON string
 - Always validate parsed JSON before using — wrap in try/catch
 - Match threshold is always `MATCH_THRESHOLD` from `lib/utils.ts` — never hardcode 70
 - Company research synthesis must always return a complete dossier — never return empty even if browser research failed
@@ -688,13 +676,13 @@ export default defineEventHandler(async (event) => {
   const pdfData = await pdf(buffer);
   const extractedText = pdfData.text; // raw text content
 
-  // Send to GPT-4o for structured extraction
+  // Send to Gemini 2.5 for structured extraction
 });
 ```
 
 **Rules:**
 
 - Server-side only — never import in client components
-- `pdfData.text` is raw unformatted text — GPT-4o handles the structure extraction
+- `pdfData.text` is raw unformatted text — Gemini 2.5 handles the structure extraction
 - Always handle parse errors — some PDFs are image-based and return empty text
 - If `pdfData.text` is empty or very short — return error to user: "Could not extract text from this PDF. Please try a different file."

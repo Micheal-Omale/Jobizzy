@@ -13,6 +13,7 @@ export type AnalyticsEvent =
   | 'sign_in_failed'
   | 'signed_out'
   | 'cta_clicked'
+  | 'profile_completed'
 
 type AnalyticsProps = Record<string, unknown>
 

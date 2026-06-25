@@ -14,9 +14,27 @@ export default defineNuxtConfig({
     host: process.env.NUXT_PUBLIC_POSTHOG_HOST,
   },
   runtimeConfig: {
+    // Server-private. Mapped from GEMINI_API_KEY in .env (the auto NUXT_ prefix
+    // doesn't apply since the var isn't named NUXT_GEMINI_API_KEY), so set it
+    // explicitly. Never expose under `public` — this is a secret.
+    geminiApiKey: process.env.GEMINI_API_KEY ?? '',
+    // Adzuna credentials — same explicit-mapping reason as geminiApiKey. Note
+    // the key var in .env is ADZUNA_API_KEY (not ADZUNA_APP_KEY as the build-plan
+    // wrote it) — match the real env name or Adzuna 400s with empty credentials.
+    adzunaAppId: process.env.ADZUNA_APP_ID ?? '',
+    adzunaAppKey: process.env.ADZUNA_API_KEY ?? '',
+    // Browserless replaces Browserbase (unavailable in our region) for company
+    // research. Stagehand connects to the remote Chrome over CDP using these.
+    // Secrets — never expose under `public`.
+    browserlessApiKey: process.env.BROWSERLESS_API_KEY ?? '',
+    browserlessWsUrl: process.env.BROWSERLESS_WS_URL ?? '',
     public: {
       insforgeUrl: '',
-      insforgeAnonKey: ''
+      insforgeAnonKey: '',
+      // Auto-filled from NUXT_PUBLIC_POSTHOG_KEY/HOST. Exposed so the server-side
+      // posthog-node client (server/utils/posthog.ts) can capture agent events.
+      posthogKey: '',
+      posthogHost: ''
     }
   },
   vite: {

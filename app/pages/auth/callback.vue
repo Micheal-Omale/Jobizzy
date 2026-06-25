@@ -7,14 +7,23 @@ useHead({
   title: 'Signing you in… · JobPilot'
 })
 
+const route = useRoute()
 const { user, refresh } = useAuth()
 const { track } = useAnalytics()
 
 onMounted(async () => {
-  // getCurrentUser() automatically completes the pending OAuth callback
-  // (exchanges insforge_code for a session) before resolving. refresh() also
-  // identifies the user in PostHog once the session resolves.
-  await refresh()
+  // SSR browser clients do not auto-exchange OAuth callbacks, so hand the code
+  // to the server route: it completes the PKCE exchange and sets the session
+  // cookies. refresh() then reads the new access cookie and identifies the user.
+  const code = (route.query.code ?? route.query.insforge_code) as string | undefined
+
+  try {
+    if (!code) throw new Error('Missing authorization code')
+    await $fetch('/api/auth/oauth-callback', { method: 'POST', body: { code } })
+    await refresh()
+  } catch (error) {
+    console.error('[pages/auth/callback]', error)
+  }
 
   if (user.value) {
     track('sign_in_completed')

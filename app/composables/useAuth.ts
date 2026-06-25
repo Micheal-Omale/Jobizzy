@@ -84,15 +84,20 @@ export function useAuth() {
 
   async function signInWithOAuth(provider: OAuthProvider): Promise<AuthResult> {
     try {
-      const insforge = useInsforge()
+      // OAuth initiation runs server-side (SSR auth): the route mints the
+      // provider URL and stashes the PKCE verifier in an httpOnly cookie, so the
+      // callback route can complete the exchange and own the session cookies.
       const redirectTo = `${window.location.origin}/auth/callback`
-      const { error } = await insforge.auth.signInWithOAuth(provider, { redirectTo })
+      const { url } = await $fetch<{ url: string }>('/api/auth/oauth-start', {
+        method: 'POST',
+        body: { provider, redirectTo }
+      })
 
-      if (error) {
-        console.error('[composables/useAuth] signInWithOAuth', error)
+      if (!url) {
         return { success: false, error: GENERIC_OAUTH_ERROR }
       }
 
+      window.location.href = url
       return { success: true }
     } catch (error) {
       console.error('[composables/useAuth] signInWithOAuth', error)
@@ -102,8 +107,8 @@ export function useAuth() {
 
   async function signOut(): Promise<void> {
     try {
-      const insforge = useInsforge()
-      await insforge.auth.signOut()
+      // Server-side sign-out revokes the session and clears the auth cookies.
+      await $fetch('/api/auth/signout', { method: 'POST' })
     } catch (error) {
       console.error('[composables/useAuth] signOut', error)
     } finally {
