@@ -11,6 +11,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@browserbasehq/stagehand": "^3.6.0",
     "@google/genai": "^2.10.0",
     "@insforge/sdk": "^1.4.2",
     "@posthog/nuxt": "^1.7.77",
@@ -19,7 +20,8 @@
     "pdfmake": "^0.2.23",
     "posthog-node": "^5.38.3",
     "vue": "^3.5.38",
-    "vue-router": "^5.1.0"
+    "vue-router": "^5.1.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.1",
@@ -27,6 +29,7 @@
     "@types/pdfmake": "^0.3.3",
     "tailwindcss": "^4.3.1",
     "typescript": "^6.0.3",
+    "vite": "^8.1.0",
     "vue-tsc": "^3.3.5"
   }
 }

@@ -75,7 +75,7 @@ onMounted(async () => {
         <JobDetailsMatchReasoning :job="job" />
         <JobDetailsSkillsComparison :job="job" />
         <JobDetailsJobDescription :job="job" />
-        <JobDetailsCompanyResearch :company-name="job.company" />
+        <JobDetailsCompanyResearch :job="job" />
 
         <a
           v-if="applyUrl"

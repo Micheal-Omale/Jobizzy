@@ -6,9 +6,9 @@ Update this file after every completed feature. Any AI agent reading this should
 
 ## Current Status
 
-**Phase:** Phase 4 — Job Details Page (in progress)
-**Last completed:** 12 Job Details Page — Full UI
-**Next:** 13 Company Research Agent (Phase 4)
+**Phase:** Phase 5 — Dashboard (in progress)
+**Last completed:** 13 Company Research Agent
+**Next:** 14 Dashboard Page — Full UI
 
 ---
 
@@ -37,7 +37,7 @@ Update this file after every completed feature. Any AI agent reading this should
 ### Phase 4 — Job Details Page
 
 - [x] 12 Job Details Page — Full UI
-- [ ] 13 Company Research Agent
+- [x] 13 Company Research Agent
 
 ### Phase 5 — Dashboard
 
@@ -49,6 +49,14 @@ Update this file after every completed feature. Any AI agent reading this should
 ---
 
 ## Decisions Made During Build
+
+**13 Company Research Agent (2026-06-26)**
+
+- **Browserless & Stagehand v3:** Leveraged `@browserbasehq/stagehand` v3 which operates via CDP directly. `browserless.ts` establishes the CDP connection securely via the `BROWSERLESS_WS_URL` and `BROWSERLESS_API_KEY`.
+- **Extraction Logic:** Uses the Stagehand v3 `extract(instruction, schema)` syntax with a Zod schema to extract `oneLiner`, `productSummary`, `signals`, and `pageLinks` from the company homepage. Sub-pages are navigated dynamically based on their importance (`about`, `product`, `engineering`, etc.).
+- **Dossier Generation:** Fed the extracted context (homepage + subpages), the Adzuna job description, and the user's profile to `gemini-2.5-flash` in JSON mode (`gemini.ts` helpers). The generated dossier perfectly maps to the 9-field `CompanyResearch` object type.
+- **Frontend Wiring:** Wired the "Research Company" button in `find-jobs/[id].vue` to hit `POST /api/agent/research`, persist the data in `jobs.company_research` directly on success, and swap out the empty state with the full dossier UI component.
+- **Edge cases:** Fails gracefully (transient errors vs 500s). In case Stagehand completely fails to load the subpages, Gemini will still synthesize the best possible prep dossier using the job description and the candidate's profile.
 
 **12 Job Details Page — Full UI (2026-06-25)**
 
