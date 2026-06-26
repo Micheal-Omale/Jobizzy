@@ -157,7 +157,7 @@ Last updated: 2026-06-23
 
 Navbar "Start for free" and both Hero CTAs bind `:to="ctaTarget"` from `useAuth()` → `/login` when logged out, `/dashboard` when authenticated. The Navbar button label also swaps to "Go to Dashboard" when authenticated. Visual classes unchanged from the original homepage build.
 
-> **Note — `app/pages/dashboard.vue` is a placeholder stub** (greeting + sign-out card) until feature 14 builds the real dashboard. It currently hosts the only sign-out UI.
+> **Note — `app/pages/dashboard.vue` is now the real dashboard (feature 14).** ⚠️ The old stub hosted the app's **only** sign-out UI; the real dashboard (built to the design) has no sign-out. Sign-out needs a new home (Navbar user menu or Profile page) — currently there is no way to sign out from the UI.
 
 ### PagePlaceholder (`app/components/PagePlaceholder.vue`)
 
@@ -392,3 +392,45 @@ Full-width accent CTA: `inline-flex w-full items-center justify-center gap-2 rou
 ### New tokens — warning tints
 
 Added `--color-warning-light` (#ffedd5) and `--color-warning-dark` (#c2410c) to `main.css` (`:root` + `@theme inline`) for the gap-skill badges (`bg-warning-light text-warning-dark`). Same sanctioned `@theme inline` route as the feat-05 error tints.
+
+---
+
+## Dashboard Page (Feature 14)
+
+`app/pages/dashboard.vue` replaces its placeholder stub. **Gray page shell** (same as find-jobs: `min-h-[calc(100vh-5rem)] w-full bg-background px-6 py-8 md:px-8`, inner `mx-auto flex max-w-[1160px] flex-col gap-6`). Three rows: `<DashboardStatsBar>`; a `grid grid-cols-1 gap-6 lg:grid-cols-5` row with `<DashboardRecentActivity class="lg:col-span-2">` + `<DashboardCompanyResearchChart class="lg:col-span-3">`; a `grid grid-cols-1 gap-6 lg:grid-cols-2` row with `<DashboardJobsFoundChart>` + `<DashboardMatchScoreChart>`. Built to `designs/dashboard.png` (overrides stale build-plan labels — 4th stat is "Jobs This Week", top-right chart is "Company Research Activity"). **Stat cards (feature 15) and Recent Activity (feature 16) are real data; the three charts are still mock (feature 17).** The page loads both in `onMounted` (`ensureLoaded()` → `Promise.all([useDashboardStats().refresh(), useRecentActivity().refresh()])`), same client-side pattern as find-jobs/profile. **No incomplete-profile banner and no sign-out control** — the design shows neither (see progress-tracker for the sign-out regression note). All cards are the canonical white **Card** (`rounded-2xl border border-border bg-surface p-6` + shadow).
+
+### Stat Card (`app/components/dashboard/StatCard.vue`)
+
+Props: `label: string`, `value: string`, `note: string`, `trend?: string`, `trendPositive?: boolean` (default `true`). Presentational — `StatsBar.vue` feeds it real data from `useDashboardStats()` (feature 15). Canonical card, `flex flex-col gap-2`.
+
+| Element     | Class                                                              |
+| ----------- | ----------------------------------------------------------------- |
+| Label       | `text-[14px] font-medium text-text-secondary`                     |
+| Value       | `text-[30px] font-semibold leading-9 text-text-primary`           |
+| Trend pill  | `rounded-sm px-2 py-0.5 text-[12px] font-medium` + `:class` → green `bg-success-lightest text-success-darker` (positive/zero) or red `bg-error-lightest text-error` (negative). Shown only when `trend` is set. |
+| Note        | `text-[12px] text-text-muted` (e.g. "vs last week" / "Total researched") |
+
+The ui-tokens "Trend Badges" spec realized — `rounded-sm` (not pill). Pill is **direction-colored** (green up / red down) since feature 15 made the trend a real week-over-week delta; the design only showed the green/positive state. Cards 1–2 carry a trend pill (hidden when there's no prior-week baseline); cards 3–4 show the note only.
+
+### Stats Bar real-data wiring (`StatsBar.vue` + `useDashboardStats.ts`)
+
+`StatsBar.vue` consumes `useDashboardStats()` (`stats`, `loaded`). While `!loaded` it renders four `h-[120px] animate-pulse rounded-2xl border border-border bg-surface-secondary` skeleton cards (SSR shows these; the client hydrates real figures after auth), then the real `StatCard`s. `app/composables/useDashboardStats.ts` derives the four stats + week-over-week trends as a `computed` over `useJobs().jobs` (no aggregate round-trip — counts are small). Reusable skeleton pattern: a fixed-height `animate-pulse` block matching the real card's footprint.
+
+### Recent Activity (`app/components/dashboard/RecentActivity.vue` + `useRecentActivity.ts`)
+
+Canonical card. Heading `text-[16px] font-semibold leading-6 text-text-primary`. **Real data (feature 16)** via `useRecentActivity()` (`activities`, `loaded`). Three states: 5 skeleton rows (halo + two `animate-pulse rounded bg-surface-secondary` lines) while `!loaded`; an **empty state** (`flex flex-1 flex-col items-center justify-center gap-1 py-10 text-center` — "No activity yet" `text-text-secondary` + helper `text-text-muted`) when loaded with no entries; else `<ul class="mt-5 flex flex-col gap-5">`. Each row: `flex items-start gap-3` — a **halo dot** + (`text-[14px] font-medium text-text-primary` text / `text-[12px] text-text-muted` timestamp).
+
+**Halo dot:** `mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full` outer ring + `h-2 w-2 rounded-full` inner dot (the ui-tokens Activity Dots — 16px outer / 8px inner). **Two colors keyed on entry `type`** (`Record<"search" | "research", string>`): `search` (completed job search = "job found") → green `bg-success-light`/`bg-success-alt`; `research` (company dossier) → info blue `bg-info-light`/`bg-info`. **This supersedes the feature-14 mock's 3-color accent/info/success scheme** — the build-plan feature-16 spec defines exactly these two types/colors.
+
+`useRecentActivity.ts` merges completed `agent_runs` (own query) with `jobs.company_research` (from `useJobs`), sorts by timestamp desc, caps at `ACTIVITY_LIMIT = 6`. Entry text: `"Found N job(s) for {title}"` / `"Researched {company}"` + `formatRelativeTime`.
+
+### Dashboard charts — inline-SVG pattern (`CompanyResearchChart.vue`, `JobsFoundChart.vue`, `MatchScoreChart.vue`)
+
+**Dependency-free inline SVG — not recharts** (React-only, unusable in Vue and never installed). Each is a canonical card: heading, then `mt-6 flex flex-1 gap-3` = a y-axis HTML column (`flex w-5/w-7 flex-col justify-between py-1 text-right text-[11px] text-text-muted`, one `<span>` per tick) + a `flex-1 flex-col` holding the plot and an x-axis HTML row (`mt-2 flex` of `flex-1 text-center text-[11px] text-text-muted` labels, one per bar/point so they center-align with the marks).
+
+**Plot SVG:** `viewBox="0 0 100 100" preserveAspectRatio="none" class="h-full w-full"` inside an `h-[220px]` box. Coordinates computed in script as percentages (`value/max*100`). Gridlines: `<line>` per y-tick, `stroke="var(--color-border)" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"`. Labels live in HTML (not SVG `<text>`) so the non-uniform `preserveAspectRatio="none"` scaling never distorts text.
+
+- **Bar charts** (`CompanyResearchChart` blue `fill="var(--color-info)"`, max 12; `MatchScoreChart` green `fill="var(--color-success)"`, max 100): `<rect rx="1.2">`, slot = `100/n`, bar width = `slotWidth*0.42`, centered.
+- **Line chart** (`JobsFoundChart`, purple): points at slot centers `(i+0.5)*slotWidth`; smooth path via per-segment cubic béziers with horizontal control tangents (`buildLinePath`). `<path stroke="var(--color-accent)" stroke-width="2.5" vector-effect="non-scaling-stroke">` over an area `<path fill="url(#jobsFoundFill)">` (vertical `linearGradient`, accent `stop-opacity` 0.25 → 0). Honors the ui-tokens "Dashboard Chart Colors" table; all colors via CSS-var tokens (no hex).
+
+Feature 17 swaps the mock `data` arrays in each for real PostHog series — the SVG/label rendering stays.

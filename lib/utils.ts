@@ -5,6 +5,21 @@
 // and the find-agent's "strong matches" count both read this.
 export const MATCH_THRESHOLD = 70
 
+// Picks a "nice" chart axis maximum at or above the data's peak by rounding up to
+// a multiple of 4 — so the 5 evenly-spaced y-axis ticks (max, ¾, ½, ¼, 0) are all
+// clean integers. `floor` keeps a tiny dataset (e.g. a single value of 1) from
+// rendering a flat, full-height bar, and gives an empty chart real gridlines.
+export function niceChartMax(values: number[], floor = 4): number {
+  const peak = Math.max(0, floor, ...values)
+  return Math.ceil(peak / 4) * 4
+}
+
+// Even y-axis tick values from `max` down to 0 (inclusive), `count` ticks total.
+export function axisTicks(max: number, count = 5): number[] {
+  const step = max / (count - 1)
+  return Array.from({ length: count }, (_, i) => Math.round(max - i * step))
+}
+
 // Human-friendly "time ago" for a job's found_at (and reusable on job details).
 // Falls back to an absolute date once it's more than a week old.
 export function formatRelativeTime(iso: string): string {

@@ -173,6 +173,21 @@ export type ProfileCompletion = {
   isComplete: boolean;
 };
 
+// Dashboard analytics charts (feature 17) — derived from the in-memory job list
+// (useDashboardAnalytics). Each chart renders one ChartPoint[]:
+//   - jobsFound / companyResearch: 7 entries, oldest→newest, weekday labels (Mon…Sun)
+//   - matchDistribution: 5 fixed score buckets (50-60% … 90-100%)
+export type ChartPoint = {
+  label: string;
+  value: number;
+};
+
+export type DashboardAnalytics = {
+  jobsFound: ChartPoint[];
+  matchDistribution: ChartPoint[];
+  companyResearch: ChartPoint[];
+};
+
 // Result of server/api/resume/extract — the fields the résumé yielded, which the
 // profile form merges over the current values for the user to review and save.
 // Only fields actually found are present, so missing ones leave the form as-is.

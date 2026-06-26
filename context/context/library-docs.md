@@ -601,6 +601,21 @@ await posthog.shutdown(); // required — ensures event is sent
 - Call `posthog.identify(userId)` after login on client side
 - Call `posthog.reset()` on logout on client side
 
+### Reading event data back (dashboard charts, feature 17)
+
+`posthog-node` only **captures** — it has no query API. But you rarely need one here:
+**every PostHog event in this project is derived from the `jobs` table** (`job_found` is
+captured the moment a job row is inserted; `company_researched` when a dossier is written).
+So the dashboard analytics charts derive their numbers from the **in-memory job list**
+(`useJobs`, already loaded for the stats) rather than querying PostHog — no personal API
+key, no server route, no extra round-trip. `app/composables/useDashboardAnalytics.ts` is a
+pure `computed` over `jobs.value` (same client-side-derive pattern as `useDashboardStats`
+and `useRecentActivity`). PostHog stays the **write/funnel** sink; the DB is the read model.
+
+> If you ever genuinely need to read events PostHog holds that the DB does not, that's the
+> Query API (a **personal** `phx_…` key against the **app** host `us.posthog.com`, not the
+> public `phc_…` capture key / ingestion host) — but prefer the DB while the events mirror it.
+
 ---
 
 ## pdfmake
