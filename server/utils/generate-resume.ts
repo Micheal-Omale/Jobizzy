@@ -1,4 +1,3 @@
-import { createRequire } from 'node:module'
 import { Type } from '@google/genai'
 import type { Schema } from '@google/genai'
 import type { Content, TDocumentDefinitions, TFontDictionary } from 'pdfmake/interfaces'
@@ -17,8 +16,14 @@ interface PdfKitDocument {
 type PdfPrinterCtor = new (fonts: TFontDictionary) => {
   createPdfKitDocument(documentDefinition: TDocumentDefinitions): PdfKitDocument
 }
-const nodeRequire = createRequire(import.meta.url)
-const PdfPrinter = nodeRequire('pdfmake') as PdfPrinterCtor
+// Static import of pdfmake's Node entry (its `main`, src/printer.js — NOT the
+// browser build). Must be static, not a dynamic createRequire: Vercel/Nitro's
+// dependency tracer (node-file-trace) only follows static imports, so a dynamic
+// require leaves pdfmake out of the serverless bundle → runtime "Cannot find
+// module 'pdfmake'". The deep path also pins the Node build regardless of how
+// Vite resolves the package's "browser" field during SSR.
+import pdfPrinterModule from 'pdfmake/src/printer.js'
+const PdfPrinter = pdfPrinterModule as unknown as PdfPrinterCtor
 
 const MODEL = 'gemini-2.5-flash'
 const MAX_BULLETS = 5

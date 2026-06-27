@@ -51,16 +51,6 @@ export default defineNuxtConfig({
       posthogHost: ''
     }
   },
-  nitro: {
-    // pdfmake is loaded via a dynamic createRequire() in server/utils/generate-resume.ts
-    // (the Node PdfPrinter entry). Vercel's static dependency tracer can't see through
-    // that, so without this the package isn't copied into the serverless function and
-    // every request crashes with "Cannot find module 'pdfmake'". Force it (and its
-    // runtime font/data deps) into the trace.
-    externals: {
-      traceInclude: ['pdfmake']
-    }
-  },
   vite: {
     plugins: [tailwindcss()]
   }
