@@ -22,6 +22,7 @@ type PdfPrinterCtor = new (fonts: TFontDictionary) => {
 // require leaves pdfmake out of the serverless bundle → runtime "Cannot find
 // module 'pdfmake'". The deep path also pins the Node build regardless of how
 // Vite resolves the package's "browser" field during SSR.
+// @ts-ignore
 import pdfPrinterModule from 'pdfmake/src/printer.js'
 const PdfPrinter = pdfPrinterModule as unknown as PdfPrinterCtor
 

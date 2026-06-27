@@ -6,7 +6,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Sign in · JobPilot'
+  title: 'Sign in · Jobizzy'
 })
 
 const route = useRoute()
@@ -40,15 +40,24 @@ async function handleOAuth(provider: 'google' | 'github'): Promise<void> {
 <template>
   <div class="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-12">
     <div class="w-full max-w-md">
-      <NuxtLink to="/" class="mb-8 flex justify-center">
-        <img src="/public/logo.png" alt="JobPilot" class="h-9 w-auto" />
+      <NuxtLink to="/" class="mb-8 flex justify-center items-center gap-[11px]">
+        <span
+          class="jz-frame-sm flex h-9 w-9 items-center justify-center rounded-[10px] bg-accent"
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="3.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 13l7-7 7 7" />
+            <path d="M5 19l7-7 7 7" />
+          </svg>
+        </span>
+        <span class="font-display text-[21px] font-bold tracking-[-0.03em] text-text">Jobizzy</span>
       </NuxtLink>
 
       <div
-        class="rounded-2xl border border-border bg-surface p-8 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
+        class="flex flex-col rounded-2xl border border-border bg-surface px-6 py-10 min-h-[340px] shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
       >
-        <h1 class="text-center text-[24px] font-bold leading-8 text-text-primary">
-          Welcome to JobPilot
+        <h1 class="text-center text-[19px] font-bold leading-7 text-text-primary">
+          Welcome to Jobizzy
         </h1>
         <p class="mt-2 text-center text-[14px] leading-5 text-text-secondary">
           Sign in to find your next role faster.
@@ -57,16 +66,16 @@ async function handleOAuth(provider: 'google' | 'github'): Promise<void> {
         <p
           v-if="errorMessage"
           role="alert"
-          class="mt-6 rounded-md border border-error px-4 py-3 text-[13px] leading-5 text-error"
+          class="mt-6 rounded-md border border-error px-4 py-3 text-[14px] leading-5 text-error"
         >
           {{ errorMessage }}
         </p>
 
-        <div class="mt-8 flex flex-col gap-3">
+        <div class="mt-auto pt-8 flex flex-col gap-3">
           <button
             type="button"
             :disabled="loadingProvider !== null"
-            class="flex h-12 w-full items-center justify-center gap-3 rounded-md border border-border bg-surface px-4 text-[14px] font-medium text-text-primary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-60"
+            class="flex w-full cursor-pointer py-2.5 items-center justify-center gap-3 rounded-md border border-border bg-surface px-4 text-[14px] font-medium text-text-primary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-60"
             @click="handleOAuth('google')"
           >
             <!-- Official Google brand mark — brand colors are exempt from design tokens -->
@@ -94,7 +103,7 @@ async function handleOAuth(provider: 'google' | 'github'): Promise<void> {
           <button
             type="button"
             :disabled="loadingProvider !== null"
-            class="flex h-12 w-full items-center justify-center gap-3 rounded-md border border-border bg-surface px-4 text-[14px] font-medium text-text-primary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-60"
+            class="flex w-full cursor-pointer py-2.5 items-center justify-center gap-3 rounded-md border border-border bg-surface px-4 text-[14px] font-medium text-text-primary transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-60"
             @click="handleOAuth('github')"
           >
             <!-- Official GitHub brand mark -->
@@ -109,7 +118,7 @@ async function handleOAuth(provider: 'google' | 'github'): Promise<void> {
       </div>
 
       <p class="mt-6 text-center text-[12px] leading-4 text-text-muted">
-        By continuing you agree to JobPilot&rsquo;s Terms and Privacy Policy.
+        By continuing you agree to Jobizzy&rsquo;s Terms and Privacy Policy.
       </p>
     </div>
   </div>
