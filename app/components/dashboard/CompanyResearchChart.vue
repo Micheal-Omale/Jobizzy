@@ -18,10 +18,13 @@ const max = computed(() => Math.max(1, ...props.data.map((d) => d.value)));
 const bars = computed(() =>
   props.data.map((d) => ({
     label: d.label,
+    value: d.value,
     height: (d.value / max.value) * 100,
     isPeak: d.value === max.value && d.value > 0,
   })),
 );
+
+const activeIndex = ref<number | null>(null);
 </script>
 
 <template>
@@ -42,13 +45,26 @@ const bars = computed(() =>
 
     <div v-else class="flex h-[200px] items-end gap-[14px] pl-1.5">
       <div
-        v-for="bar in bars"
+        v-for="(bar, i) in bars"
         :key="bar.label"
-        class="flex h-full flex-1 flex-col items-center justify-end gap-2"
+        class="relative flex h-full flex-1 flex-col items-center justify-end gap-2"
+        @mouseenter="activeIndex = i"
+        @mouseleave="activeIndex = null"
       >
+        <!-- Tooltip above the active bar -->
         <div
-          class="w-full rounded-t-[5px] border-2 border-border"
-          :class="bar.isPeak ? 'bg-accent' : 'bg-info'"
+          v-if="activeIndex === i"
+          class="pointer-events-none absolute bottom-[calc(100%-14px)] left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-[8px] border-2 border-border bg-surface px-2.5 py-1.5 shadow-md"
+        >
+          <span class="font-mono text-[11px] font-semibold text-text">{{ bar.label }}</span>
+          <span class="ml-1.5 font-mono text-[11px] text-text-2">{{ bar.value }} companies</span>
+        </div>
+        <div
+          class="w-full rounded-t-[5px] border-2 border-border transition-opacity"
+          :class="[
+            bar.isPeak ? 'bg-accent' : 'bg-info',
+            { 'opacity-70': activeIndex !== null && activeIndex !== i },
+          ]"
           :style="{ height: `${bar.height}%` }"
         ></div>
         <span class="font-mono text-[11px] text-text-3">{{ bar.label }}</span>
