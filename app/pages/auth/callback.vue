@@ -4,7 +4,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Signing you in… · JobPilot'
+  title: 'Signing you in… · Jobizzy'
 })
 
 const route = useRoute()
