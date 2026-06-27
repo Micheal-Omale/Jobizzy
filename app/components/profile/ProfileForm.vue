@@ -105,13 +105,14 @@ const feedback = ref<{
 const { saveProfile } = useProfile();
 
 const inputClass =
-  "w-full rounded-md border border-border bg-surface px-3 py-2.5 text-[14px] text-text-primary placeholder:text-text-muted transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent";
+  "w-full rounded-[9px] border-2 border-border bg-surface-2 px-3.5 py-[11px] text-[14.5px] text-text placeholder:text-text-3 transition-colors focus:border-accent-ink focus:outline-none";
 const selectClass = `${inputClass} cursor-pointer appearance-none pr-9`;
 const labelClass =
-  "mb-1.5 block text-[12px] font-medium uppercase tracking-wide text-text-secondary";
+  "mb-[7px] block font-mono text-[10.5px] font-bold uppercase tracking-[0.05em] text-text-2";
 const addButtonClass =
-  "shrink-0 rounded-md border border-border bg-surface px-4 py-2.5 text-[14px] font-medium text-text-primary transition-colors hover:bg-surface-secondary";
-const sectionTitleClass = "text-[14px] font-semibold text-text-primary";
+  "jz-frame-sm shrink-0 rounded-[9px] bg-surface px-4 py-[11px] text-[14px] font-semibold text-text transition-colors hover:bg-surface-sunk";
+const sectionTitleClass =
+  "font-mono text-[12px] font-bold uppercase tracking-[0.06em] text-accent-ink";
 
 function addSkill(): void {
   const value = skillInput.value.trim();
@@ -228,18 +229,16 @@ async function handleSubmit(): Promise<void> {
 
 <template>
   <form @submit.prevent="handleSubmit">
-    <div
-      class="rounded-2xl border border-border bg-surface p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-    >
-      <h2 class="text-[16px] font-semibold leading-6 text-text-primary">
+    <div class="jz-frame-lg rounded-[14px] bg-surface p-6">
+      <h2 class="font-display text-[19px] font-bold text-text">
         Profile Information
       </h2>
-      <p class="mt-1 text-[14px] leading-5 text-text-secondary">
+      <p class="mt-1.5 text-[14px] leading-5 text-text-2">
         This context is used to accurately represent you to agent interactions.
       </p>
 
       <!-- Personal Info -->
-      <section class="mt-6 border-t border-border pt-6">
+      <section class="mt-6 border-t-2 border-border-soft pt-[18px]">
         <h3 :class="sectionTitleClass">Personal Info</h3>
         <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
@@ -254,7 +253,7 @@ async function handleSubmit(): Promise<void> {
               type="email"
               disabled
               readonly
-              class="w-full cursor-not-allowed rounded-md border border-border bg-surface-secondary px-3 py-2.5 text-[14px] text-text-secondary"
+              class="w-full cursor-not-allowed rounded-[9px] border-2 border-border bg-surface-sunk px-3.5 py-[11px] text-[14.5px] text-text-3"
             />
           </div>
           <div>
@@ -291,7 +290,7 @@ async function handleSubmit(): Promise<void> {
       </section>
 
       <!-- Professional Info -->
-      <section class="mt-8 border-t border-border pt-6">
+      <section class="mt-8 border-t-2 border-border-soft pt-[18px]">
         <h3 :class="sectionTitleClass">Professional Info</h3>
         <div class="mt-4 flex flex-col gap-4">
           <div>
@@ -337,10 +336,10 @@ async function handleSubmit(): Promise<void> {
               <span
                 v-for="(skill, index) in skills"
                 :key="skill"
-                class="inline-flex items-center gap-1.5 rounded-full bg-accent-light px-3 py-1 text-[12px] font-medium text-accent"
+                class="inline-flex items-center gap-1.5 rounded-lg border-2 border-border bg-accent-soft px-3 py-[7px] text-[13px] font-semibold text-accent-ink"
               >
                 {{ skill }}
-                <button type="button" class="text-accent transition-opacity hover:opacity-70" :aria-label="`Remove ${skill}`" @click="removeSkill(index)">
+                <button type="button" class="text-accent-ink transition-opacity hover:opacity-70" :aria-label="`Remove ${skill}`" @click="removeSkill(index)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3" aria-hidden="true">
                     <path d="M18 6 6 18" />
                     <path d="m6 6 12 12" />
@@ -367,10 +366,10 @@ async function handleSubmit(): Promise<void> {
               <span
                 v-for="(industry, index) in industries"
                 :key="industry"
-                class="inline-flex items-center gap-1.5 rounded-full bg-accent-light px-3 py-1 text-[12px] font-medium text-accent"
+                class="inline-flex items-center gap-1.5 rounded-lg border-2 border-border bg-accent-soft px-3 py-[7px] text-[13px] font-semibold text-accent-ink"
               >
                 {{ industry }}
-                <button type="button" class="text-accent transition-opacity hover:opacity-70" :aria-label="`Remove ${industry}`" @click="removeIndustry(index)">
+                <button type="button" class="text-accent-ink transition-opacity hover:opacity-70" :aria-label="`Remove ${industry}`" @click="removeIndustry(index)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3" aria-hidden="true">
                     <path d="M18 6 6 18" />
                     <path d="m6 6 12 12" />
@@ -383,13 +382,13 @@ async function handleSubmit(): Promise<void> {
       </section>
 
       <!-- Work Experience -->
-      <section class="mt-8 border-t border-border pt-6">
+      <section class="mt-8 border-t-2 border-border-soft pt-[18px]">
         <div class="flex items-center justify-between">
           <h3 :class="sectionTitleClass">Work Experience</h3>
           <button
             v-if="canAddRole"
             type="button"
-            class="inline-flex items-center gap-1 text-[13px] font-medium text-accent transition-opacity hover:opacity-80"
+            class="inline-flex items-center gap-1 text-[13px] font-semibold text-accent-ink transition-opacity hover:opacity-80"
             @click="addRole"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
@@ -404,7 +403,7 @@ async function handleSubmit(): Promise<void> {
           <div
             v-for="(role, index) in workRoles"
             :key="index"
-            class="rounded-xl border border-border bg-surface-secondary p-4"
+            class="rounded-[11px] border-2 border-border bg-surface-sunk p-[18px]"
           >
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
@@ -424,8 +423,8 @@ async function handleSubmit(): Promise<void> {
               </div>
               <div>
                 <div class="mb-1.5 flex items-center justify-between">
-                  <label class="text-[12px] font-medium uppercase tracking-wide text-text-secondary">End Date</label>
-                  <label class="flex items-center gap-2 text-[12px] font-medium text-text-secondary">
+                  <label class="font-mono text-[10.5px] font-bold uppercase tracking-[0.05em] text-text-2">End Date</label>
+                  <label class="flex items-center gap-2 text-[12px] font-medium text-text-2">
                     <input v-model="role.currentlyWorking" type="checkbox" class="h-4 w-4 rounded border-border accent-accent" />
                     Currently working here
                   </label>
@@ -435,7 +434,7 @@ async function handleSubmit(): Promise<void> {
                   type="month"
                   :class="inputClass"
                   :disabled="role.currentlyWorking"
-                  class="disabled:cursor-not-allowed disabled:bg-surface-tertiary disabled:text-text-muted"
+                  class="disabled:cursor-not-allowed disabled:bg-surface-sunk disabled:text-text-3"
                 />
               </div>
             </div>
@@ -454,7 +453,7 @@ async function handleSubmit(): Promise<void> {
             <div v-if="workRoles.length > 1" class="mt-3 flex justify-end">
               <button
                 type="button"
-                class="text-[12px] font-medium text-text-secondary transition-colors hover:text-error"
+                class="text-[12px] font-semibold text-text-2 transition-colors hover:text-error"
                 @click="removeRole(index)"
               >
                 Remove role
@@ -465,7 +464,7 @@ async function handleSubmit(): Promise<void> {
       </section>
 
       <!-- Education -->
-      <section class="mt-8 border-t border-border pt-6">
+      <section class="mt-8 border-t-2 border-border-soft pt-[18px]">
         <h3 :class="sectionTitleClass">Education</h3>
         <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
@@ -498,7 +497,7 @@ async function handleSubmit(): Promise<void> {
       </section>
 
       <!-- Job Preferences -->
-      <section class="mt-8 border-t border-border pt-6">
+      <section class="mt-8 border-t-2 border-border-soft pt-[18px]">
         <h3 :class="sectionTitleClass">Job Preferences</h3>
         <div class="mt-4 flex flex-col gap-4">
           <div>
@@ -539,11 +538,11 @@ async function handleSubmit(): Promise<void> {
       <p
         v-if="feedback"
         :role="feedback.type === 'error' ? 'alert' : 'status'"
-        class="text-[13px] font-medium"
+        class="text-[13px] font-semibold"
         :class="{
           'text-error': feedback.type === 'error',
-          'text-warning': feedback.type === 'warning',
-          'text-success-foreground': feedback.type === 'success',
+          'text-fair-ink': feedback.type === 'warning',
+          'text-good-ink': feedback.type === 'success',
         }"
       >
         {{ feedback.message }}
@@ -551,7 +550,7 @@ async function handleSubmit(): Promise<void> {
       <button
         type="submit"
         :disabled="saving"
-        class="w-full rounded-md bg-accent px-4 py-3 text-[14px] font-medium text-accent-foreground transition-colors hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+        class="jz-frame jz-press w-full rounded-[11px] bg-accent px-6 py-3.5 font-display text-[16px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
       >
         {{ saving ? (phase === "uploading" ? "Uploading résumé…" : "Saving…") : "Save Profile" }}
       </button>

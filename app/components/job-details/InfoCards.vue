@@ -23,31 +23,18 @@ const jobType = computed<string>(() => {
   return map[raw] ?? raw.charAt(0).toUpperCase() + raw.slice(1);
 });
 
-const cardClass =
-  "flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]";
-const chipClass = "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg";
-const valueClass = "truncate text-[14px] font-semibold text-text-primary";
-const labelClass = "text-[11px] font-medium uppercase tracking-wide text-text-muted";
+const cardClass = "jz-frame flex items-center gap-3 rounded-[12px] bg-surface p-4";
+const chipClass = "flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[9px] border-2 border-border";
+const valueClass = "truncate font-display text-[15px] font-bold text-text";
+const labelClass = "mt-0.5 font-mono text-[10px] uppercase tracking-[0.04em] text-text-3";
 </script>
 
 <template>
-  <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+  <div class="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
     <div :class="cardClass">
-      <div :class="[chipClass, 'bg-success-lightest text-success']">
-        <svg
-          class="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <line x1="12" x2="12" y1="2" y2="22" />
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
-      </div>
+      <span :class="[chipClass, 'bg-good-soft text-good-ink']">
+        <span class="text-[15px] font-bold">$</span>
+      </span>
       <div class="min-w-0">
         <p :class="valueClass">{{ job.salary ?? "—" }}</p>
         <p :class="labelClass">Salary Est.</p>
@@ -55,21 +42,12 @@ const labelClass = "text-[11px] font-medium uppercase tracking-wide text-text-mu
     </div>
 
     <div :class="cardClass">
-      <div :class="[chipClass, 'bg-info-lightest text-info-dark']">
-        <svg
-          class="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
-          <circle cx="12" cy="10" r="3" />
+      <span :class="[chipClass, 'bg-info-soft text-info-ink']">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 21s-7-6-7-11a7 7 0 0114 0c0 5-7 11-7 11z" />
+          <circle cx="12" cy="10" r="2.5" />
         </svg>
-      </div>
+      </span>
       <div class="min-w-0">
         <p :class="valueClass">{{ job.location ?? "—" }}</p>
         <p :class="labelClass">Location</p>
@@ -77,21 +55,12 @@ const labelClass = "text-[11px] font-medium uppercase tracking-wide text-text-mu
     </div>
 
     <div :class="cardClass">
-      <div :class="[chipClass, 'bg-surface-tertiary text-text-secondary']">
-        <svg
-          class="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-          <rect width="20" height="14" x="2" y="6" rx="2" />
+      <span :class="[chipClass, 'bg-accent-soft text-accent-ink']">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="7" width="18" height="13" rx="2" />
+          <path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" />
         </svg>
-      </div>
+      </span>
       <div class="min-w-0">
         <p :class="valueClass">{{ jobType }}</p>
         <p :class="labelClass">Job Type</p>
@@ -99,23 +68,12 @@ const labelClass = "text-[11px] font-medium uppercase tracking-wide text-text-mu
     </div>
 
     <div :class="cardClass">
-      <div :class="[chipClass, 'bg-accent-light text-accent']">
-        <svg
-          class="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M8 2v4" />
-          <path d="M16 2v4" />
-          <rect width="18" height="18" x="3" y="4" rx="2" />
-          <path d="M3 10h18" />
+      <span :class="[chipClass, 'bg-surface-sunk text-text-2']">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="17" rx="2" />
+          <path d="M3 9h18M8 2v4M16 2v4" />
         </svg>
-      </div>
+      </span>
       <div class="min-w-0">
         <p :class="valueClass">{{ formatRelativeTime(job.found_at) }}</p>
         <p :class="labelClass">Date Found</p>

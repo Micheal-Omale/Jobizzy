@@ -1,22 +1,28 @@
 @import "tailwindcss";
 
-:root {
-  /* Font */
-  --font-sans: "Inter", sans-serif;
+/* ============================================================
+   Jobizzy design system — framed / editorial
+   Light is the default; dark is opt-in via [data-theme="dark"]
+   on <html> (driven by useTheme). Raw CSS variables below are
+   consumed both by var() references and by the Tailwind @theme
+   registration further down.
 
-  /* Page and surface backgrounds */
+   The legacy semantic tokens (text-primary, surface-secondary,
+   info-medium, …) are kept so app pages that still use them keep
+   rendering until they're migrated to the new framed look. Where a
+   name overlaps (surface, border, info, error, accent), the new
+   framed value is defined last and wins globally.
+   ============================================================ */
+:root {
+  /* ---- Legacy tokens (kept for un-migrated app pages) ---- */
   --color-background: #f6f7fb;
-  --color-surface: #ffffff;
   --color-surface-secondary: #f9fafb;
   --color-surface-tertiary: #f2f5f7;
   --color-surface-muted: #f4f5fb;
 
-  /* Borders */
-  --color-border: #e7eaf3;
   --color-border-light: #e5e7eb;
   --color-border-muted: #dfe1e7;
 
-  /* Text */
   --color-text-primary: #101828;
   --color-text-secondary: #6a7282;
   --color-text-muted: #99a1af;
@@ -27,14 +33,11 @@
   --color-text-slate: #272835;
   --color-text-slate-medium: #666d80;
 
-  /* Primary accent — purple */
-  --color-accent: #7c5cfc;
   --color-accent-dark: #5e4cff;
   --color-accent-light: #f3e8ff;
   --color-accent-muted: #faf5ff;
   --color-accent-foreground: #ffffff;
 
-  /* Success — green */
   --color-success: #10b981;
   --color-success-alt: #00bc7d;
   --color-success-dark: #007a55;
@@ -43,8 +46,6 @@
   --color-success-lightest: #ecfdf5;
   --color-success-foreground: #007a55;
 
-  /* Info — blue */
-  --color-info: #61a8ff;
   --color-info-dark: #155dfc;
   --color-info-medium: #2b7fff;
   --color-info-light: #dbeafe;
@@ -52,28 +53,69 @@
   --color-info-foreground: #155dfc;
   --color-info-muted: #94a2c5;
 
-  /* Warning — orange */
   --color-warning: #ff8904;
   --color-warning-foreground: #ffffff;
   --color-warning-light: #ffedd5;
   --color-warning-dark: #c2410c;
 
-  /* Error — red */
-  --color-error: #ef4444;
   --color-error-light: #fee2e2;
   --color-error-lightest: #fef2f2;
   --color-error-foreground: #ffffff;
 
-  /* LinkedIn brand */
-  --color-linkedin: #0a66c2;
   --color-linkedin-light: #dce6f1;
   --color-linkedin-foreground: #ffffff;
 
-  /* Dark overlays */
   --color-overlay: #111827;
   --color-overlay-dark: #131316;
 
-  /* Border radius */
+  /* ---- New framed system (light) ---- */
+  /* Fonts */
+  --font-display: "Space Grotesk", "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+  --font-sans: var(--font-body);
+
+  /* Surfaces */
+  --color-bg: #f4f1ea;
+  --color-surface: #fffdf9;
+  --color-surface-2: #ffffff;
+  --color-surface-sunk: #efebe0;
+
+  /* Borders */
+  --color-border: #1a1714;
+  --color-border-soft: #d8d2c4;
+
+  /* Text */
+  --color-text: #1a1714;
+  --color-text-2: #5a554d;
+  --color-text-3: #8a857c;
+
+  /* Accent — purple */
+  --color-accent: #7c5cfc;
+  --color-accent-ink: #5b43d6;
+  --color-accent-soft: #ede7ff;
+
+  /* Match tiers */
+  --color-good: #15a34a;
+  --color-good-soft: #c9f0dd;
+  --color-good-ink: #15803d;
+  --color-fair: #f59e0b;
+  --color-fair-soft: #fce7c3;
+  --color-fair-ink: #b45309;
+  --color-info: #2b7fff;
+  --color-info-soft: #d6e4ff;
+  --color-info-ink: #1d4fbf;
+
+  /* Brand / status */
+  --color-linkedin: #0a66c2;
+  --color-error: #ef4444;
+  --color-error-soft: #fce0e0;
+
+  /* Decoration */
+  --color-shadow: #1a1714;
+  --color-dot: #e3decf;
+
+  /* Radius */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -81,19 +123,83 @@
   --radius-full: 9999px;
 }
 
+[data-theme="dark"] {
+  --color-bg: #13120e;
+  --color-surface: #1e1b15;
+  --color-surface-2: #232019;
+  --color-surface-sunk: #171510;
+
+  --color-border: #4a4639;
+  --color-border-soft: #34301f;
+
+  --color-text: #f4f1ea;
+  --color-text-2: #b6b0a2;
+  --color-text-3: #857f70;
+
+  --color-accent: #8b6dff;
+  --color-accent-ink: #b6a4ff;
+  --color-accent-soft: #2a2440;
+
+  --color-good: #22c55e;
+  --color-good-soft: #16331f;
+  --color-good-ink: #4ade80;
+  --color-fair: #f59e0b;
+  --color-fair-soft: #3a2e12;
+  --color-fair-ink: #fbbf24;
+  --color-info: #4d8dff;
+  --color-info-soft: #172540;
+  --color-info-ink: #8fb8ff;
+
+  --color-linkedin: #4593e6;
+  --color-error: #f87171;
+  --color-error-soft: #3a1a1a;
+
+  --color-shadow: #000000;
+  --color-dot: #2a2719;
+}
+
+/* Register tokens with Tailwind v4 so semantic utilities resolve. */
 @theme inline {
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
   --font-sans: var(--font-sans);
 
-  --color-background: var(--color-background);
+  /* New framed system */
+  --color-bg: var(--color-bg);
   --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-surface-sunk: var(--color-surface-sunk);
+  --color-border: var(--color-border);
+  --color-border-soft: var(--color-border-soft);
+  --color-text: var(--color-text);
+  --color-text-2: var(--color-text-2);
+  --color-text-3: var(--color-text-3);
+  --color-accent: var(--color-accent);
+  --color-accent-ink: var(--color-accent-ink);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-good: var(--color-good);
+  --color-good-soft: var(--color-good-soft);
+  --color-good-ink: var(--color-good-ink);
+  --color-fair: var(--color-fair);
+  --color-fair-soft: var(--color-fair-soft);
+  --color-fair-ink: var(--color-fair-ink);
+  --color-info: var(--color-info);
+  --color-info-soft: var(--color-info-soft);
+  --color-info-ink: var(--color-info-ink);
+  --color-linkedin: var(--color-linkedin);
+  --color-error: var(--color-error);
+  --color-error-soft: var(--color-error-soft);
+  --color-shadow: var(--color-shadow);
+  --color-dot: var(--color-dot);
+
+  /* Legacy tokens */
+  --color-background: var(--color-background);
   --color-surface-secondary: var(--color-surface-secondary);
   --color-surface-tertiary: var(--color-surface-tertiary);
   --color-surface-muted: var(--color-surface-muted);
-
-  --color-border: var(--color-border);
   --color-border-light: var(--color-border-light);
   --color-border-muted: var(--color-border-muted);
-
   --color-text-primary: var(--color-text-primary);
   --color-text-secondary: var(--color-text-secondary);
   --color-text-muted: var(--color-text-muted);
@@ -103,13 +209,10 @@
   --color-text-black: var(--color-text-black);
   --color-text-slate: var(--color-text-slate);
   --color-text-slate-medium: var(--color-text-slate-medium);
-
-  --color-accent: var(--color-accent);
   --color-accent-dark: var(--color-accent-dark);
   --color-accent-light: var(--color-accent-light);
   --color-accent-muted: var(--color-accent-muted);
   --color-accent-foreground: var(--color-accent-foreground);
-
   --color-success: var(--color-success);
   --color-success-alt: var(--color-success-alt);
   --color-success-dark: var(--color-success-dark);
@@ -117,29 +220,21 @@
   --color-success-light: var(--color-success-light);
   --color-success-lightest: var(--color-success-lightest);
   --color-success-foreground: var(--color-success-foreground);
-
-  --color-info: var(--color-info);
   --color-info-dark: var(--color-info-dark);
   --color-info-medium: var(--color-info-medium);
   --color-info-light: var(--color-info-light);
   --color-info-lightest: var(--color-info-lightest);
   --color-info-foreground: var(--color-info-foreground);
   --color-info-muted: var(--color-info-muted);
-
   --color-warning: var(--color-warning);
   --color-warning-foreground: var(--color-warning-foreground);
   --color-warning-light: var(--color-warning-light);
   --color-warning-dark: var(--color-warning-dark);
-
-  --color-error: var(--color-error);
   --color-error-light: var(--color-error-light);
   --color-error-lightest: var(--color-error-lightest);
   --color-error-foreground: var(--color-error-foreground);
-
-  --color-linkedin: var(--color-linkedin);
   --color-linkedin-light: var(--color-linkedin-light);
   --color-linkedin-foreground: var(--color-linkedin-foreground);
-
   --color-overlay: var(--color-overlay);
   --color-overlay-dark: var(--color-overlay-dark);
 
@@ -150,18 +245,65 @@
   --radius-full: var(--radius-full);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* No dark theme defined yet in ui-tokens.md */
-  }
-}
-
+html,
 body {
-  background-color: var(--color-background);
-  color: var(--color-text-primary);
-  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
 }
 
+::selection {
+  background: #7c5cfc;
+  color: #fff;
+}
+
+/* ============================================================
+   Helpers for the framed look
+   ============================================================ */
+
+/* Framed block: 2px border + hard offset shadow. */
+.jz-frame {
+  border: 2px solid var(--color-border);
+  box-shadow: 4px 4px 0 var(--color-shadow);
+}
+
+.jz-frame-sm {
+  border: 2px solid var(--color-border);
+  box-shadow: 2px 2px 0 var(--color-shadow);
+}
+
+.jz-frame-lg {
+  border: 2px solid var(--color-border);
+  box-shadow: 6px 6px 0 var(--color-shadow);
+}
+
+/* Press-in hover for interactive framed elements. */
+.jz-press {
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.jz-press:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--color-shadow);
+}
+.jz-press-sm {
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.jz-press-sm:hover {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1.5px 1.5px 0 var(--color-shadow);
+}
+
+/* Dot-grid backdrop (hero / CTA). */
+.jz-dot-grid {
+  background-image: radial-gradient(var(--color-dot) 1.4px, transparent 1.4px);
+  background-size: 18px 18px;
+}
+.jz-dot-grid-light {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1.4px, transparent 1.4px);
+  background-size: 18px 18px;
+}
+
+/* Legacy decorative helpers still referenced by un-migrated pages. */
 .jp-soft-gradient {
   background:
     radial-gradient(circle at 38% 16%, color-mix(in srgb, var(--color-accent-light) 74%, transparent) 0, transparent 30%),

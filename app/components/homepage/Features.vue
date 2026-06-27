@@ -1,146 +1,161 @@
 <script setup lang="ts">
-const jobRows = [
-  { company: "Vercel", score: "94%", scoreColor: "bg-success", salary: "$160k - $200k", source: "LinkedIn", sourceClass: "bg-info-lightest text-linkedin" },
-  { company: "Stripe", score: "88%", scoreColor: "bg-info-medium", salary: "$180k - $240k", source: "URL", sourceClass: "bg-surface-secondary text-text-secondary" },
-  { company: "Linear", score: "96%", scoreColor: "bg-success", salary: "$150k - $190k", source: "LinkedIn", sourceClass: "bg-info-lightest text-linkedin" },
-  { company: "Notion", score: "72%", scoreColor: "bg-warning", salary: "$130k - $170k", source: "LinkedIn", sourceClass: "bg-info-lightest text-linkedin" },
-  { company: "OpenAI", score: "91%", scoreColor: "bg-success", salary: "$200k - $280k", source: "LinkedIn", sourceClass: "bg-info-lightest text-linkedin" },
-  { company: "Figma", score: "85%", scoreColor: "bg-info-medium", salary: "$170k - $220k", source: "URL", sourceClass: "bg-surface-secondary text-text-secondary" },
+type Tier = "good" | "info" | "fair";
+
+interface JobRow {
+  company: string;
+  match: number;
+  tier: Tier;
+  salary: string;
+  source: "IN" | "URL";
+}
+
+const rows: JobRow[] = [
+  { company: "Vercel", match: 94, tier: "good", salary: "$160–200k", source: "IN" },
+  { company: "Stripe", match: 88, tier: "info", salary: "$180–240k", source: "URL" },
+  { company: "Linear", match: 96, tier: "good", salary: "$150–190k", source: "IN" },
+  { company: "Notion", match: 72, tier: "fair", salary: "$130–170k", source: "IN" },
+  { company: "OpenAI", match: 91, tier: "good", salary: "$200–280k", source: "IN" },
 ];
 
-const searchFeatures = [
+const barClass: Record<Tier, string> = {
+  good: "bg-good",
+  info: "bg-info",
+  fair: "bg-fair",
+};
+const inkClass: Record<Tier, string> = {
+  good: "text-good-ink",
+  info: "text-info-ink",
+  fair: "text-fair-ink",
+};
+
+const manageFeatures = [
   {
     title: "Find jobs that actually fit",
-    description: "Search by title and location or paste a job link. Get matched roles you can quickly scan.",
-    active: true,
+    body: "Search by title and location, or paste a job link. Get matched roles you can scan in seconds.",
   },
   {
-    title: "Know the Company Before You Apply",
-    description: "Stop guessing what a company is about. JobPilot browses their site and gives you everything you need to apply with confidence.",
-    active: false,
+    title: "Know the company before you apply",
+    body: "Jobizzy browses a company's public pages and hands you a dossier — apply with confidence.",
   },
   {
     title: "Keep track of every application",
-    description: "Keep a clear view of every job you've found, tailored. Your activity and progress all stay in one simple place.",
-    active: false,
+    body: "A clear view of every job you've found, tailored — activity and progress in one place.",
   },
 ];
 
-const confidenceFeatures = [
+const applyFeatures = [
   {
     title: "Understand your match score",
-    description: "See how your profile lines up with each role before you apply. Get a clear breakdown of what fits and what's missing.",
-    active: false,
+    body: "See how your profile lines up with each role before you apply — what fits and what's missing.",
   },
   {
-    title: "AI-Powered Job Matching",
-    description: "Stop guessing which jobs are worth applying to. JobPilot scores every role against your actual skills so you focus on the ones that matter.",
-    active: true,
+    title: "AI-powered job matching",
+    body: "Jobizzy scores every role against your actual skills, so you focus only on the ones that matter.",
   },
   {
     title: "Focus on the right roles",
-    description: "Filter out low fit jobs and stay on the ones that actually matter. Spend less time sorting and more time applying.",
-    active: false,
+    body: "Filter out low-fit jobs. Spend less time sorting and more time applying.",
   },
 ];
 </script>
 
 <template>
-  <section class="border-t border-border bg-surface">
-    <div class="jp-page-grid grid grid-cols-1 lg:grid-cols-2">
-      <div class="border-b border-border px-8 py-16 md:px-16 md:py-24 lg:border-r">
-        <h2 class="max-w-xl text-[42px] font-bold leading-[1.08] text-text-primary md:text-[54px]">
-          Manage Your Job<br />
-          Search With Ease
-        </h2>
-
-        <div class="mt-16 border-t border-border">
-          <div
-            v-for="feature in searchFeatures"
-            :key="feature.title"
-            class="border-b border-border py-8 pl-6 pr-3"
-            :class="feature.active ? 'border-l-2 border-l-accent' : 'border-l-2 border-l-surface'"
-          >
-            <h3 class="text-[20px] font-semibold text-text-darker">
-              {{ feature.title }}
-            </h3>
-            <p class="mt-5 max-w-2xl text-[20px] leading-8 text-text-secondary">
-              {{ feature.description }}
-            </p>
-          </div>
-        </div>
+  <!-- Feature 1 — Manage with ease -->
+  <section
+    class="mx-auto grid max-w-[1140px] items-center gap-12 px-7 py-[84px] md:grid-cols-[1fr_1.15fr] md:gap-16"
+  >
+    <div>
+      <div class="mb-4 font-mono text-[12px] font-bold uppercase tracking-[0.08em] text-accent-ink">
+        01 — Find &amp; Track
       </div>
-
-      <div class="flex items-center justify-center border-b border-border bg-surface-muted px-8 py-16 md:px-16 md:py-24">
-        <div class="w-full max-w-[620px] overflow-hidden rounded-2xl border border-border bg-surface shadow-md shadow-info-muted/10">
-          <div class="grid grid-cols-[1.3fr_1fr_1.1fr_.8fr] border-b border-border bg-surface-secondary px-7 py-5 text-[13px] font-bold uppercase text-text-secondary">
-            <span>Company</span>
-            <span>Match Score</span>
-            <span>Salary Est.</span>
-            <span>Source</span>
-          </div>
-
-          <div
-            v-for="job in jobRows"
-            :key="job.company"
-            class="grid grid-cols-[1.3fr_1fr_1.1fr_.8fr] items-center border-b border-border px-7 py-5 last:border-b-0"
-          >
-            <div class="flex items-center gap-4">
-              <span class="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface-secondary text-[18px] text-text-muted">
-                &#9874;
-              </span>
-              <span class="text-[17px] font-semibold text-text-primary">{{ job.company }}</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="h-1.5 w-12 rounded-full bg-border-light">
-                <span class="block h-1.5 w-10 rounded-full" :class="job.scoreColor"></span>
-              </span>
-              <span class="text-[16px] font-semibold text-text-secondary">{{ job.score }}</span>
-            </div>
-            <span class="text-[16px] font-medium text-text-secondary">{{ job.salary }}</span>
-            <span class="justify-self-start rounded-md border border-border px-3 py-2 text-[15px] font-semibold" :class="job.sourceClass">
-              {{ job.source }}
-            </span>
-          </div>
+      <h2 class="m-0 font-display text-[34px] font-bold leading-[1.05] tracking-[-0.03em] text-text md:text-[42px]">
+        Manage your job search with ease
+      </h2>
+      <div class="mt-[30px] flex flex-col">
+        <div
+          v-for="(feat, i) in manageFeatures"
+          :key="feat.title"
+          class="border-t-2 border-border-soft py-[18px]"
+          :class="{ 'border-b-2': i === manageFeatures.length - 1 }"
+        >
+          <div class="text-[16px] font-bold text-text">{{ feat.title }}</div>
+          <div class="mt-[5px] text-[14.5px] leading-[1.5] text-text-2">{{ feat.body }}</div>
         </div>
       </div>
     </div>
 
-    <div class="jp-hatch h-28 border-b border-border"></div>
+    <!-- Jobs table -->
+    <div class="jz-frame-lg overflow-hidden rounded-[14px] bg-surface-2">
+      <div
+        class="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.7fr] border-b-2 border-border bg-surface-sunk px-[18px] py-[13px] font-mono text-[10.5px] font-bold uppercase tracking-[0.05em] text-text-3"
+      >
+        <span>Company</span><span>Match</span><span>Salary</span><span>Source</span>
+      </div>
+      <div
+        v-for="(row, i) in rows"
+        :key="row.company"
+        class="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.7fr] items-center px-[18px] py-3.5"
+        :class="{ 'border-b-[1.5px] border-border-soft': i !== rows.length - 1 }"
+      >
+        <span class="text-[13.5px] font-semibold text-text">{{ row.company }}</span>
+        <span class="flex items-center gap-2">
+          <span class="h-[9px] w-[46px] overflow-hidden rounded-[5px] border-[1.5px] border-border bg-surface">
+            <span class="block h-full" :class="barClass[row.tier]" :style="{ width: `${row.match}%` }" />
+          </span>
+          <b class="text-[13px]" :class="inkClass[row.tier]">{{ row.match }}%</b>
+        </span>
+        <span class="text-[12.5px] text-text-2">{{ row.salary }}</span>
+        <span
+          class="rounded-[5px] border-[1.5px] border-border px-[7px] py-[3px] text-center font-mono text-[10px] font-bold"
+          :class="row.source === 'IN' ? 'bg-info-soft text-linkedin' : 'bg-surface-sunk text-text-2'"
+        >
+          {{ row.source }}
+        </span>
+      </div>
+    </div>
+  </section>
 
-    <div class="jp-page-grid grid grid-cols-1 lg:grid-cols-2">
-      <div class="order-2 flex items-center justify-center border-b border-border bg-surface-muted px-8 py-16 md:px-16 md:py-24 lg:order-1 lg:border-r">
-        <img
-          src="/public/images/agnet-log.png"
-          alt="JobPilot agent log"
-          class="w-full max-w-[620px] rounded-[22px] shadow-lg shadow-info-muted/10"
-        />
+  <!-- Feature 2 — Apply with confidence -->
+  <section class="border-y-2 border-border bg-surface-sunk">
+    <div
+      class="mx-auto grid max-w-[1140px] items-center gap-12 px-7 py-[84px] md:grid-cols-[1.15fr_1fr] md:gap-16"
+    >
+      <!-- Agent log terminal (intentionally dark in both themes) -->
+      <div class="jz-frame-lg overflow-hidden rounded-[14px]" style="background:#161410">
+        <div class="flex items-center gap-2 border-b-2 px-4 py-3" style="border-color:#000;background:#0e0d0a">
+          <span class="h-[11px] w-[11px] rounded-full" style="background:#ff5f57" />
+          <span class="h-[11px] w-[11px] rounded-full" style="background:#febc2e" />
+          <span class="h-[11px] w-[11px] rounded-full" style="background:#28c840" />
+          <span class="ml-2 font-mono text-[12px]" style="color:#8a857c">agent_log.ts</span>
+        </div>
+        <div class="px-5 py-[22px] font-mono text-[13px] leading-[2.05]" style="color:#e8e4da">
+          <div><span style="color:#8a857c">1</span>&nbsp;&nbsp;<span style="color:#8b6dff">[SYSTEM]</span> Initializing Jobizzy Agent…</div>
+          <div><span style="color:#8a857c">2</span>&nbsp;&nbsp;<span style="color:#c77dff">[SCAN]</span> Found 14 matching roles</div>
+          <div><span style="color:#8a857c">3</span>&nbsp;&nbsp;&#8627; Filtered out 3 roles (below salary cap)</div>
+          <div><span style="color:#8a857c">4</span>&nbsp;&nbsp;<span style="color:#4ade80">[ACTION]</span> Tailoring resume for Stripe</div>
+          <div><span style="color:#8a857c">5</span>&nbsp;&nbsp;<span style="color:#fbbf24">…</span> Generating cover letter</div>
+        </div>
       </div>
 
-      <div class="order-1 border-b border-border px-8 py-16 md:px-16 md:py-24 lg:order-2">
-        <h2 class="max-w-2xl text-[42px] font-bold leading-[1.08] text-text-primary md:text-[54px]">
-          Apply With More<br />
-          Confidence, Every Time
+      <div>
+        <div class="mb-4 font-mono text-[12px] font-bold uppercase tracking-[0.08em] text-accent-ink">
+          02 — Apply Smart
+        </div>
+        <h2 class="m-0 font-display text-[34px] font-bold leading-[1.05] tracking-[-0.03em] text-text md:text-[42px]">
+          Apply with more confidence, every time
         </h2>
-
-        <div class="mt-16 border-t border-border">
+        <div class="mt-[30px] flex flex-col">
           <div
-            v-for="feature in confidenceFeatures"
-            :key="feature.title"
-            class="border-b border-border py-8 pl-6 pr-3"
-            :class="feature.active ? 'border-l-2 border-l-success' : 'border-l-2 border-l-surface'"
+            v-for="(feat, i) in applyFeatures"
+            :key="feat.title"
+            class="border-t-2 border-border-soft py-[18px]"
+            :class="{ 'border-b-2': i === applyFeatures.length - 1 }"
           >
-            <h3 class="text-[20px] font-semibold text-text-darker">
-              {{ feature.title }}
-            </h3>
-            <p class="mt-5 max-w-2xl text-[20px] leading-8 text-text-secondary">
-              {{ feature.description }}
-            </p>
+            <div class="text-[16px] font-bold text-text">{{ feat.title }}</div>
+            <div class="mt-[5px] text-[14.5px] leading-[1.5] text-text-2">{{ feat.body }}</div>
           </div>
         </div>
       </div>
     </div>
-
-    <div class="jp-hatch h-28 border-b border-border"></div>
   </section>
 </template>

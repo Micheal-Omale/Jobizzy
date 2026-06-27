@@ -2,19 +2,29 @@
 </script>
 
 <template>
-  <section class="py-24 border-t border-border bg-surface text-center flex flex-col items-center px-6">
-    <div class="max-w-4xl mx-auto">
-      <span class="text-[12px] font-bold text-accent uppercase tracking-widest mb-8 block">SUCCESS STORIES</span>
-      <h2 class="text-3xl md:text-4xl font-medium text-text-primary leading-tight">
-        “I used to spend my evenings copy-pasting resumes. Now I open my dashboard to see interviews waiting. It feels like cheating. Had 3 offers on the table simultaneously.”
-      </h2>
-      
-      <div class="mt-10 flex items-center justify-center gap-4">
-        <img src="/public/images/user-icon.png" alt="Tom Wilson" class="w-12 h-12 rounded-full object-cover border border-border" />
-        <div class="flex flex-col items-start">
-          <span class="text-[16px] font-semibold text-text-primary">Tom Wilson</span>
-          <span class="text-[14px] text-text-secondary">Junior Developer</span>
-        </div>
+  <section class="mx-auto max-w-[880px] px-7 py-[84px] text-center">
+    <div class="mb-7 font-mono text-[12px] font-bold uppercase tracking-[0.1em] text-accent-ink">
+      Success Stories
+    </div>
+    <p class="m-0 font-display text-[26px] font-medium leading-[1.32] tracking-[-0.02em] text-text md:text-[32px]">
+      &ldquo;I used to spend my evenings copy-pasting resumes. Now I open my dashboard
+      to see interviews waiting. Had
+      <span class="rounded-[6px] border-2 border-border bg-good-soft px-2 [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">3 offers</span>
+      on the table simultaneously.&rdquo;
+    </p>
+
+    <div
+      class="jz-frame mt-[34px] inline-flex items-center gap-[13px] rounded-[50px] bg-surface-2 py-2 pl-2 pr-[18px]"
+    >
+      <span
+        class="flex h-[42px] w-[42px] items-center justify-center rounded-full border-2 border-border font-display font-bold text-white"
+        style="background:linear-gradient(135deg,var(--color-accent),var(--color-info))"
+      >
+        TW
+      </span>
+      <div class="text-left">
+        <div class="text-[14px] font-bold text-text">Tom Wilson</div>
+        <div class="text-[12.5px] text-text-3">Junior Developer</div>
       </div>
     </div>
   </section>

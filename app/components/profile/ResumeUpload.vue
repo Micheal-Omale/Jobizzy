@@ -119,11 +119,9 @@ async function viewResume(): Promise<void> {
 </script>
 
 <template>
-  <div
-    class="rounded-2xl border border-border bg-surface p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-  >
-    <h2 class="text-[16px] font-semibold leading-6 text-text-primary">Resume</h2>
-    <p class="mt-1 text-[14px] leading-5 text-text-secondary">
+  <div class="jz-frame-lg rounded-[14px] bg-surface p-6">
+    <h2 class="font-display text-[19px] font-bold text-text">Resume</h2>
+    <p class="mt-1.5 mb-[18px] text-[14px] leading-5 text-text-2">
       Upload an existing resume to auto-fill the profile, or generate a new
       tailored one from your details below.
     </p>
@@ -138,11 +136,11 @@ async function viewResume(): Promise<void> {
 
     <button
       type="button"
-      class="mt-4 flex w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center transition-colors"
+      class="flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-[34px] text-center transition-colors"
       :class="
         isDragging
-          ? 'border-accent bg-accent-muted'
-          : 'border-border-muted bg-surface-secondary hover:bg-surface-tertiary'
+          ? 'border-accent bg-accent-soft'
+          : 'border-border-soft bg-surface-sunk'
       "
       @click="openPicker"
       @dragover.prevent="isDragging = true"
@@ -150,45 +148,33 @@ async function viewResume(): Promise<void> {
       @dragleave.prevent="isDragging = false"
       @drop.prevent="onDrop"
     >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="h-8 w-8 text-accent"
-        aria-hidden="true"
-      >
-        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
-        <path d="M12 12v9" />
-        <path d="m16 16-4-4-4 4" />
-      </svg>
-      <span class="text-[14px] font-medium text-text-primary">
+      <span class="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-border bg-accent-soft text-accent-ink">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 16V4M7 9l5-5 5 5" />
+          <path d="M5 20h14" />
+        </svg>
+      </span>
+      <span class="font-display text-[16px] font-bold text-text">
         Click to upload or drag and drop
       </span>
-      <span class="text-[12px] text-text-muted">
-        PDF formatting only. Maximum file size 5MB.
-      </span>
-      <span
-        class="mt-1 rounded-md border border-border bg-surface px-4 py-2 text-[14px] font-medium text-text-primary"
-      >
+      <span class="font-mono text-[12px] text-text-3">PDF only · Max 5MB</span>
+      <span class="jz-frame-sm mt-1 rounded-[9px] bg-surface px-[18px] py-2.5 text-[13.5px] font-semibold text-text">
         Select Resume
       </span>
     </button>
 
-    <p v-if="errorMessage" role="alert" class="mt-2 text-[13px] leading-5 text-error">
+    <p v-if="errorMessage" role="alert" class="mt-2 text-[13px] font-semibold leading-5 text-error">
       {{ errorMessage }}
     </p>
 
     <div
       v-if="file"
-      class="mt-3 flex items-center justify-between gap-3 rounded-md border border-border bg-surface-secondary px-3 py-2"
+      class="mt-3 flex items-center justify-between gap-3 rounded-[9px] border-2 border-border bg-surface-2 px-3.5 py-2.5"
     >
-      <span class="truncate text-[13px] font-medium text-text-primary">{{ file.name }}</span>
+      <span class="truncate text-[13px] font-medium text-text">{{ file.name }}</span>
       <button
         type="button"
-        class="shrink-0 text-[12px] font-medium text-text-secondary transition-colors hover:text-error"
+        class="shrink-0 text-[12px] font-semibold text-text-2 transition-colors hover:text-error"
         @click="clearFile"
       >
         Remove
@@ -198,17 +184,8 @@ async function viewResume(): Promise<void> {
       v-else-if="resumeUrl"
       class="mt-3 flex items-center justify-between gap-3"
     >
-      <p class="flex items-center gap-2 text-[13px] text-text-secondary">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="h-4 w-4 shrink-0 text-success"
-          aria-hidden="true"
-        >
+      <p class="flex items-center gap-2 text-[13px] text-text-2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0 text-good" aria-hidden="true">
           <path d="M20 6 9 17l-5-5" />
         </svg>
         A résumé is on file. Selecting a new one replaces it.
@@ -216,7 +193,7 @@ async function viewResume(): Promise<void> {
       <button
         type="button"
         :disabled="viewing"
-        class="shrink-0 text-[13px] font-medium text-accent transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60"
+        class="shrink-0 text-[13px] font-semibold text-accent-ink transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60"
         @click="viewResume"
       >
         {{ viewing ? "Opening…" : "View résumé" }}
@@ -227,51 +204,28 @@ async function viewResume(): Promise<void> {
       v-if="canExtract"
       type="button"
       :disabled="extracting"
-      class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-accent px-4 py-2.5 text-[14px] font-medium text-accent transition-colors hover:bg-accent-light disabled:cursor-not-allowed disabled:opacity-60"
+      class="jz-frame jz-press mt-3 inline-flex w-full items-center justify-center gap-2 rounded-[9px] bg-surface-2 px-4 py-2.5 text-[14px] font-semibold text-accent-ink disabled:cursor-not-allowed disabled:opacity-60"
       @click="extractResume"
     >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="h-4 w-4"
-        aria-hidden="true"
-      >
-        <path
-          d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
-        />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
       </svg>
       {{ extracting ? "Extracting…" : "Extract from Resume" }}
     </button>
 
-    <div
-      class="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between"
-    >
-      <p class="text-[14px] text-text-secondary">
+    <div class="mt-[18px] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <p class="text-[14px] text-text-2">
         Need a fresh document based on the fields below?
       </p>
       <button
         type="button"
         :disabled="generating"
-        class="inline-flex shrink-0 items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-[14px] font-medium text-accent-foreground transition-colors hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-60"
+        class="jz-frame jz-press inline-flex shrink-0 items-center justify-center gap-2 rounded-[9px] bg-accent px-4 py-2.5 text-[13.5px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         @click="runGenerate"
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="h-4 w-4"
-          aria-hidden="true"
-        >
-          <path
-            d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
-          />
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+          <path d="M14 2v6h6" />
         </svg>
         {{ generating ? "Generating…" : "Generate Resume from Profile" }}
       </button>

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-// Wired to the Adzuna find-agent (feature 10). The job table/filters still read
-// mock data — populating them from the DB is feature 11.
+// Wired to the Adzuna find-agent (feature 10); refreshes the shared job list on success.
 const labelClass =
-  "mb-1.5 block text-[12px] font-medium uppercase tracking-wide text-text-secondary";
+  "mb-2 block font-mono text-[11px] font-bold uppercase tracking-[0.06em] text-text-2";
+const fieldClass =
+  "flex items-center gap-2.5 rounded-[9px] border-2 border-border bg-surface-2 px-3.5 py-3";
 const inputClass =
-  "w-full rounded-md border border-border bg-surface py-2.5 pl-9 pr-3 text-[14px] text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full bg-transparent text-[14.5px] font-medium text-text placeholder:text-text-3 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60";
 
 const { refresh: refreshJobs } = useJobs();
 
@@ -47,121 +48,70 @@ async function findJobs(): Promise<void> {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <div
-      class="rounded-2xl border border-border bg-surface p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-    >
-      <div class="flex flex-col gap-4 md:flex-row md:items-end">
-        <div class="flex-1">
-          <label for="job-title" :class="labelClass">Job Title</label>
-          <div class="relative">
-            <svg
-              class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-            <input
-              id="job-title"
-              v-model="jobTitle"
-              type="text"
-              placeholder="Frontend Engineer"
-              :disabled="loading"
-              :class="inputClass"
-              @keyup.enter="findJobs"
-            />
-          </div>
-        </div>
-
-        <div class="flex-1">
-          <label for="location" :class="labelClass">Location</label>
-          <div class="relative">
-            <svg
-              class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-            <input
-              id="location"
-              v-model="location"
-              type="text"
-              placeholder="Remote, New York..."
-              :disabled="loading"
-              :class="inputClass"
-              @keyup.enter="findJobs"
-            />
-          </div>
-        </div>
-
-        <button
-          type="button"
-          :disabled="loading"
-          class="inline-flex items-center justify-center gap-2 rounded-md bg-accent px-5 py-2.5 text-[14px] font-medium text-accent-foreground hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-60"
-          @click="findJobs"
-        >
-          <svg
-            v-if="loading"
-            class="h-4 w-4 animate-spin"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            aria-hidden="true"
-          >
-            <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round" />
+  <div class="jz-frame-lg rounded-[14px] bg-surface p-6">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+      <div>
+        <label for="job-title" :class="labelClass">Job Title</label>
+        <div :class="fieldClass">
+          <svg class="shrink-0 text-text-3" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.3-4.3" />
           </svg>
-          <svg
-            v-else
-            class="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
-          {{ loading ? "Searching…" : "Find Jobs" }}
-        </button>
+          <input
+            id="job-title"
+            v-model="jobTitle"
+            type="text"
+            placeholder="Frontend Engineer"
+            :disabled="loading"
+            :class="inputClass"
+            @keyup.enter="findJobs"
+          />
+        </div>
       </div>
+
+      <div>
+        <label for="location" :class="labelClass">Location</label>
+        <div :class="fieldClass">
+          <svg class="shrink-0 text-text-3" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 21s-7-6-7-11a7 7 0 0114 0c0 5-7 11-7 11z" />
+            <circle cx="12" cy="10" r="2.5" />
+          </svg>
+          <input
+            id="location"
+            v-model="location"
+            type="text"
+            placeholder="Remote, New York…"
+            :disabled="loading"
+            :class="inputClass"
+            @keyup.enter="findJobs"
+          />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        :disabled="loading"
+        class="jz-frame jz-press flex items-center justify-center gap-2.5 rounded-[9px] bg-accent px-6 py-3 text-[15px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+        @click="findJobs"
+      >
+        <svg v-if="loading" class="h-[17px] w-[17px] animate-spin" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" aria-hidden="true">
+          <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round" />
+        </svg>
+        <svg v-else viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="M21 21l-4.3-4.3" />
+        </svg>
+        {{ loading ? "Searching…" : "Find Jobs" }}
+      </button>
     </div>
 
     <div
       v-if="result"
       role="status"
-      class="flex items-center gap-2 rounded-xl border border-success-light bg-success-lightest px-4 py-3 text-[14px] font-medium text-success-foreground"
+      class="mt-4 flex items-center gap-2.5 rounded-[9px] border-2 border-border bg-good-soft px-[15px] py-3 text-[14px] font-semibold text-good-ink"
     >
-      <svg
-        class="h-4 w-4 shrink-0 text-success"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path
-          d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"
-        />
+      <svg class="shrink-0" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 3l1.8 4.6L18.5 9l-4.6 1.8L12 15l-1.8-4.2L5.5 9l4.7-1.4z" />
       </svg>
       Found {{ result.count }} {{ result.count === 1 ? "job" : "jobs" }} and saved
       {{ result.strongMatches }} strong {{ result.strongMatches === 1 ? "match" : "matches" }}.
@@ -170,7 +120,7 @@ async function findJobs(): Promise<void> {
     <div
       v-else-if="errorMessage"
       role="alert"
-      class="rounded-xl border border-error bg-surface px-4 py-3 text-[14px] font-medium text-error"
+      class="mt-4 rounded-[9px] border-2 border-border bg-error-soft px-[15px] py-3 text-[14px] font-semibold text-error"
     >
       {{ errorMessage }}
     </div>

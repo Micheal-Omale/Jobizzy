@@ -106,18 +106,19 @@ function blankProfile(): Profile {
 </script>
 
 <template>
-  <div class="w-full border-x border-border bg-surface px-6 py-10 md:px-8">
-    <div class="mx-auto flex max-w-[880px] flex-col gap-6">
+  <div class="mx-auto max-w-[880px] px-7 pt-[34px] pb-16">
+    <h1 class="mb-[22px] font-display text-[36px] font-bold tracking-[-0.03em] text-text">Your Profile</h1>
+    <div class="flex flex-col gap-[18px]">
       <ClientOnly>
         <template v-if="loading">
-          <div class="h-40 animate-pulse rounded-2xl border border-border bg-surface-secondary" />
-          <div class="h-[760px] animate-pulse rounded-2xl border border-border bg-surface-secondary" />
+          <div class="jz-frame h-40 animate-pulse rounded-[14px] bg-surface-sunk" />
+          <div class="jz-frame h-[760px] animate-pulse rounded-[14px] bg-surface-sunk" />
         </template>
         <template v-else>
           <p
             v-if="loadError"
             role="alert"
-            class="rounded-md border border-error px-4 py-3 text-[13px] leading-5 text-error"
+            class="rounded-[9px] border-2 border-border bg-error-soft px-4 py-3 text-[13px] font-semibold leading-5 text-error"
           >
             {{ loadError }}
           </p>
@@ -136,7 +137,7 @@ function blankProfile(): Profile {
           <p
             v-if="extractNotice"
             role="status"
-            class="rounded-md border border-accent bg-accent-light px-4 py-3 text-[13px] leading-5 text-accent"
+            class="rounded-[9px] border-2 border-border bg-accent-soft px-4 py-3 text-[13px] font-semibold leading-5 text-accent-ink"
           >
             {{ extractNotice }}
           </p>
@@ -150,8 +151,8 @@ function blankProfile(): Profile {
         </template>
 
         <template #fallback>
-          <div class="h-40 animate-pulse rounded-2xl border border-border bg-surface-secondary" />
-          <div class="h-[760px] animate-pulse rounded-2xl border border-border bg-surface-secondary" />
+          <div class="jz-frame h-40 animate-pulse rounded-[14px] bg-surface-sunk" />
+          <div class="jz-frame h-[760px] animate-pulse rounded-[14px] bg-surface-sunk" />
         </template>
       </ClientOnly>
     </div>

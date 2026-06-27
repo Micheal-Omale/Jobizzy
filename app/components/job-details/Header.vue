@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { Job } from "~~/types";
-import { MATCH_THRESHOLD } from "~~/lib/utils";
 
 type Props = {
   job: Job;
@@ -11,13 +10,30 @@ const props = defineProps<Props>();
 
 const matchScore = computed<number>(() => props.job.match_score ?? 0);
 
-// Header match score uses a simpler good/ok/low scale than the find-jobs bar:
-// 90+ green, at/above the strong-match line amber, below it red — which renders
-// the design's amber 86%.
-const scoreColor = computed<string>(() => {
-  if (matchScore.value >= 90) return "text-success";
-  if (matchScore.value >= MATCH_THRESHOLD) return "text-warning";
-  return "text-error";
+// Header match pill uses the v2 tier system: 90+ good (green), 80-89 info (blue),
+// below 80 fair (amber) — renders the design's blue 85% pill.
+const tier = computed<"good" | "info" | "fair">(() => {
+  if (matchScore.value >= 90) return "good";
+  if (matchScore.value >= 80) return "info";
+  return "fair";
+});
+
+const pillClass = computed<string>(() => {
+  const map: Record<string, string> = {
+    good: "bg-good-soft text-good-ink",
+    info: "bg-info-soft text-info-ink",
+    fair: "bg-fair-soft text-fair-ink",
+  };
+  return map[tier.value]!;
+});
+
+const dotClass = computed<string>(() => {
+  const map: Record<string, string> = {
+    good: "bg-good",
+    info: "bg-info",
+    fair: "bg-fair",
+  };
+  return map[tier.value]!;
 });
 
 const jobPostUrl = computed<string | null>(
@@ -26,79 +42,41 @@ const jobPostUrl = computed<string | null>(
 </script>
 
 <template>
-  <div
-    class="rounded-2xl border border-border bg-surface p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-  >
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <div class="flex items-start gap-4">
-        <div
-          class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-secondary text-text-muted"
-        >
-          <svg
-            class="h-6 w-6"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-            <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-            <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-            <path d="M10 6h4" />
-            <path d="M10 10h4" />
-            <path d="M10 14h4" />
-            <path d="M10 18h4" />
-          </svg>
-        </div>
-        <div>
-          <h1 class="text-[24px] font-bold leading-8 text-text-primary">
-            {{ job.title ?? "—" }}
-          </h1>
-          <div class="mt-1.5 flex flex-wrap items-center gap-2 text-[14px]">
-            <span class="text-text-secondary">{{ job.company ?? "—" }}</span>
-            <svg
-              class="h-3.5 w-3.5 text-text-muted"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-            <span class="font-semibold" :class="scoreColor">{{ matchScore }}% Match Score</span>
-          </div>
-        </div>
-      </div>
-
-      <a
-        v-if="jobPostUrl"
-        :href="jobPostUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-medium text-text-secondary hover:text-text-primary"
-      >
-        <svg
-          class="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M15 3h6v6" />
-          <path d="M10 14 21 3" />
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-        </svg>
-        View Job Post
-      </a>
+  <div class="jz-frame-lg flex flex-wrap items-center gap-5 rounded-[14px] bg-surface p-6">
+    <div class="flex h-[62px] w-[62px] shrink-0 items-center justify-center rounded-[13px] border-2 border-border bg-surface-2 text-text-2">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 21h18M5 21V7l7-4 7 4v14" />
+        <path d="M9 9h.01M12 9h.01M15 9h.01M9 13h.01M12 13h.01M15 13h.01" />
+      </svg>
     </div>
+
+    <div class="min-w-[200px] flex-1">
+      <h1 class="font-display text-[30px] font-bold tracking-[-0.03em] text-text">
+        {{ job.title ?? "—" }}
+      </h1>
+      <div class="mt-[7px] flex flex-wrap items-center gap-[11px]">
+        <span class="text-[15px] font-medium text-text-2">{{ job.company ?? "—" }}</span>
+        <span
+          class="inline-flex items-center gap-1.5 rounded-[7px] border-2 border-border px-2.5 py-1 text-[12.5px] font-bold"
+          :class="pillClass"
+        >
+          <span class="h-[7px] w-[7px] rounded-full border-[1.5px] border-border" :class="dotClass"></span>
+          {{ matchScore }}% Match Score
+        </span>
+      </div>
+    </div>
+
+    <a
+      v-if="jobPostUrl"
+      :href="jobPostUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="jz-frame jz-press inline-flex shrink-0 items-center gap-2.5 rounded-[9px] bg-surface-2 px-[17px] py-[11px] text-[14px] font-semibold text-text"
+    >
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 4h6v6M20 4l-9 9M9 4H5a1 1 0 00-1 1v14a1 1 0 001 1h14a1 1 0 001-1v-4" />
+      </svg>
+      View Job Post
+    </a>
   </div>
 </template>

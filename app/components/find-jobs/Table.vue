@@ -45,17 +45,19 @@ function goTo(page: number): void {
   if (page >= 1 && page <= pageCount.value) currentPage.value = page;
 }
 
+function initial(company: string | null): string {
+  return (company ?? "—").charAt(0).toUpperCase();
+}
+
 const headClass =
-  "px-6 py-3 text-left text-[12px] font-medium uppercase tracking-wide text-text-secondary";
+  "px-[22px] py-[15px] text-left font-mono text-[10.5px] font-bold uppercase tracking-[0.06em] text-text-3";
 </script>
 
 <template>
-  <div
-    class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-  >
+  <div class="jz-frame-lg overflow-hidden rounded-[14px] bg-surface">
     <div class="overflow-x-auto">
       <table class="w-full min-w-[760px] border-collapse">
-        <thead class="bg-surface-secondary">
+        <thead class="border-b-2 border-border bg-surface-sunk">
           <tr>
             <th scope="col" :class="headClass">Company</th>
             <th scope="col" :class="headClass">Role</th>
@@ -67,16 +69,16 @@ const headClass =
         <tbody>
           <!-- Loading (first load) -->
           <tr v-if="loading && !loaded">
-            <td colspan="5" class="px-6 py-12 text-center text-[14px] text-text-secondary">
+            <td colspan="5" class="px-[22px] py-12 text-center text-[14px] text-text-2">
               Loading jobs…
             </td>
           </tr>
 
           <!-- Empty: jobs exist but the filter/search hides them all -->
           <tr v-else-if="loaded && hasJobsButNoMatches">
-            <td colspan="5" class="px-6 py-12 text-center">
-              <p class="text-[14px] font-medium text-text-primary">No matching jobs</p>
-              <p class="mt-1 text-[13px] text-text-secondary">
+            <td colspan="5" class="px-[22px] py-12 text-center">
+              <p class="text-[14px] font-semibold text-text">No matching jobs</p>
+              <p class="mt-1 text-[13px] text-text-2">
                 Try adjusting your filters or search to see more results.
               </p>
             </td>
@@ -84,9 +86,9 @@ const headClass =
 
           <!-- Empty: no jobs at all -->
           <tr v-else-if="loaded && total === 0">
-            <td colspan="5" class="px-6 py-12 text-center">
-              <p class="text-[14px] font-medium text-text-primary">No jobs yet</p>
-              <p class="mt-1 text-[13px] text-text-secondary">
+            <td colspan="5" class="px-[22px] py-12 text-center">
+              <p class="text-[14px] font-semibold text-text">No jobs yet</p>
+              <p class="mt-1 text-[13px] text-text-2">
                 Run a search above to discover roles matched to your profile.
               </p>
             </td>
@@ -97,44 +99,23 @@ const headClass =
             v-for="job in pagedJobs"
             v-else
             :key="job.id"
-            class="cursor-pointer border-t border-border hover:bg-surface-secondary"
+            class="cursor-pointer border-b-[1.5px] border-border-soft hover:bg-surface-sunk"
             @click="navigateTo(`/find-jobs/${job.id}`)"
           >
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-3">
-                <div
-                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface-secondary text-text-muted"
-                >
-                  <svg
-                    class="h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-                    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-                    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-                    <path d="M10 6h4" />
-                    <path d="M10 10h4" />
-                    <path d="M10 14h4" />
-                    <path d="M10 18h4" />
-                  </svg>
-                </div>
-                <span class="text-[14px] font-semibold text-text-primary">{{
-                  job.company ?? "—"
-                }}</span>
+            <td class="px-[22px] py-[17px]">
+              <div class="flex items-center gap-[11px]">
+                <span class="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-lg border-2 border-border bg-surface-2 font-display text-[15px] font-bold text-text">
+                  {{ initial(job.company) }}
+                </span>
+                <b class="text-[14.5px] text-text">{{ job.company ?? "—" }}</b>
               </div>
             </td>
-            <td class="px-6 py-4 text-[14px] text-text-primary">{{ job.title ?? "—" }}</td>
-            <td class="px-6 py-4">
+            <td class="px-[22px] py-[17px] text-[14px] text-text-2">{{ job.title ?? "—" }}</td>
+            <td class="px-[22px] py-[17px]">
               <FindJobsMatchScoreBar :score="job.match_score ?? 0" />
             </td>
-            <td class="px-6 py-4 text-[14px] text-text-primary">{{ job.salary ?? "—" }}</td>
-            <td class="px-6 py-4 text-[14px] text-text-secondary">
+            <td class="px-[22px] py-[17px] text-[13.5px] text-text-2">{{ job.salary ?? "—" }}</td>
+            <td class="px-[22px] py-[17px] font-mono text-[12px] text-text-3">
               {{ formatRelativeTime(job.found_at) }}
             </td>
           </tr>
@@ -144,18 +125,17 @@ const headClass =
 
     <div
       v-if="total > 0"
-      class="flex flex-col gap-3 border-t border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between"
+      class="flex flex-col gap-3 border-t-2 border-border bg-surface-sunk px-[22px] py-4 sm:flex-row sm:items-center sm:justify-between"
     >
-      <p class="text-[14px] text-text-secondary">
-        Showing <span class="font-medium text-text-primary">{{ rangeStart }}</span> to
-        <span class="font-medium text-text-primary">{{ rangeEnd }}</span> of
-        <span class="font-medium text-text-primary">{{ total }}</span> results
+      <p class="text-[13px] text-text-2">
+        Showing <b class="text-text">{{ rangeStart }}</b>–<b class="text-text">{{ rangeEnd }}</b> of
+        <b class="text-text">{{ total }}</b> results
       </p>
-      <div v-if="pageCount > 1" class="flex items-center gap-2">
+      <div v-if="pageCount > 1" class="flex items-center gap-[7px]">
         <button
           type="button"
           :disabled="currentPage === 1"
-          class="rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] font-medium text-text-secondary hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-50"
+          class="rounded-lg border-2 border-border-soft px-[13px] py-[7px] text-[13px] font-semibold text-text-3 hover:text-text disabled:cursor-not-allowed disabled:opacity-50"
           @click="goTo(currentPage - 1)"
         >
           Previous
@@ -165,13 +145,13 @@ const headClass =
           :key="i"
           type="button"
           :disabled="page === '…'"
-          class="h-8 min-w-8 rounded-md px-2 text-[13px] font-medium"
+          class="rounded-lg px-[13px] py-[7px] text-[13px] font-semibold"
           :class="
             page === currentPage
-              ? 'border border-accent bg-accent text-accent-foreground'
+              ? 'border-2 border-border bg-accent text-white'
               : page === '…'
-                ? 'cursor-default text-text-muted'
-                : 'border border-border bg-surface text-text-primary hover:bg-surface-secondary'
+                ? 'cursor-default text-text-3'
+                : 'border-2 border-border bg-surface text-text hover:bg-surface-sunk'
           "
           @click="typeof page === 'number' && goTo(page)"
         >
@@ -180,7 +160,7 @@ const headClass =
         <button
           type="button"
           :disabled="currentPage === pageCount"
-          class="rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] font-medium text-text-primary hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-50"
+          class="rounded-lg border-2 border-border bg-surface px-[13px] py-[7px] text-[13px] font-semibold text-text hover:bg-surface-sunk disabled:cursor-not-allowed disabled:opacity-50"
           @click="goTo(currentPage + 1)"
         >
           Next

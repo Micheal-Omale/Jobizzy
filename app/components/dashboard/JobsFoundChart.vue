@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChartPoint } from "~~/types";
-import { niceChartMax, axisTicks } from "~~/lib/utils";
+import { niceChartMax } from "~~/lib/utils";
 
 // Wired to PostHog job_found events (feature 17) via useDashboardAnalytics.
 const props = defineProps<{
@@ -12,106 +12,92 @@ const isEmpty = computed(
   () => props.data.length === 0 || props.data.every((d) => d.value === 0),
 );
 
+// Fixed plot box inside the 700×210 viewBox (matches the design's gridlines):
+// x spans 30→690, the line sits between y=40 (top) and y=190 (baseline).
+const LEFT = 30;
+const RIGHT = 690;
+const TOP = 40;
+const BOTTOM = 190;
+
 const max = computed(() => niceChartMax(props.data.map((d) => d.value)));
-const yTicks = computed(() => axisTicks(max.value));
 
 const points = computed(() => {
-  const slotWidth = 100 / Math.max(1, props.data.length);
+  const n = props.data.length;
+  const peak = Math.max(...props.data.map((d) => d.value));
   return props.data.map((d, i) => ({
     label: d.label,
-    x: (i + 0.5) * slotWidth,
-    y: 100 - (d.value / max.value) * 100,
+    x: n <= 1 ? (LEFT + RIGHT) / 2 : LEFT + (i / (n - 1)) * (RIGHT - LEFT),
+    y: BOTTOM - (d.value / max.value) * (BOTTOM - TOP),
+    isPeak: d.value === peak && d.value > 0,
   }));
 });
 
-function buildLinePath(pts: { x: number; y: number }[]): string {
+const linePath = computed(() => {
+  const pts = points.value;
   if (pts.length === 0) return "";
-  let path = `M ${pts[0]!.x} ${pts[0]!.y}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const current = pts[i]!;
-    const next = pts[i + 1]!;
-    const midX = (current.x + next.x) / 2;
-    path += ` C ${midX} ${current.y}, ${midX} ${next.y}, ${next.x} ${next.y}`;
-  }
-  return path;
-}
+  return pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+});
 
-const linePath = computed(() => buildLinePath(points.value));
 const areaPath = computed(() => {
   const pts = points.value;
   if (pts.length === 0) return "";
-  return `${linePath.value} L ${pts[pts.length - 1]!.x} 100 L ${pts[0]!.x} 100 Z`;
+  const first = pts[0]!;
+  const last = pts[pts.length - 1]!;
+  return `${linePath.value} L${last.x},${BOTTOM} L${first.x},${BOTTOM} Z`;
 });
-const gridLines = computed(() => yTicks.value.map((t) => 100 - (t / max.value) * 100));
 </script>
 
 <template>
-  <section
-    class="flex flex-col rounded-2xl border border-border bg-surface p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-  >
-    <h2 class="text-[16px] font-semibold leading-6 text-text-primary">Jobs Found Over Time</h2>
+  <section class="jz-frame flex flex-col rounded-[13px] bg-surface p-[22px]">
+    <h2 class="mb-[18px] font-display text-[18px] font-bold text-text">Jobs Found Over Time</h2>
 
-    <div v-if="loading" class="mt-6 h-[244px] w-full animate-pulse rounded-lg bg-surface-secondary"></div>
+    <div v-if="loading" class="h-[224px] w-full animate-pulse rounded-[10px] bg-surface-sunk"></div>
 
     <div
       v-else-if="isEmpty"
-      class="mt-6 flex h-[244px] flex-col items-center justify-center gap-1 text-center"
+      class="flex h-[224px] flex-col items-center justify-center gap-1 text-center"
     >
-      <p class="text-[14px] font-medium text-text-secondary">No data yet</p>
-      <p class="max-w-xs text-[13px] leading-5 text-text-muted">
+      <p class="text-[14px] font-medium text-text-2">No data yet</p>
+      <p class="max-w-xs text-[13px] leading-5 text-text-3">
         Run a job search and your activity will chart here.
       </p>
     </div>
 
-    <div v-else class="mt-6 flex flex-1 gap-3">
-      <div
-        class="flex w-7 flex-col justify-between py-1 text-right text-[11px] leading-none text-text-muted"
-      >
-        <span v-for="t in yTicks" :key="t">{{ t }}</span>
+    <template v-else>
+      <svg viewBox="0 0 700 210" class="h-auto w-full overflow-visible">
+        <line x1="30" y1="40" x2="690" y2="40" stroke="var(--color-border-soft)" stroke-width="1.5" stroke-dasharray="4 5" />
+        <line x1="30" y1="90" x2="690" y2="90" stroke="var(--color-border-soft)" stroke-width="1.5" stroke-dasharray="4 5" />
+        <line x1="30" y1="140" x2="690" y2="140" stroke="var(--color-border-soft)" stroke-width="1.5" stroke-dasharray="4 5" />
+        <line x1="30" y1="190" x2="690" y2="190" stroke="var(--color-border)" stroke-width="2" />
+        <path :d="areaPath" fill="var(--color-accent-soft)" />
+        <path
+          :d="linePath"
+          fill="none"
+          stroke="var(--color-accent)"
+          stroke-width="3.5"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+        <circle
+          v-for="p in points"
+          :key="p.label"
+          :cx="p.x"
+          :cy="p.y"
+          :r="p.isPeak ? 5.5 : 5"
+          :fill="p.isPeak ? 'var(--color-accent)' : 'var(--color-surface)'"
+          stroke="var(--color-border)"
+          stroke-width="2.5"
+        />
+      </svg>
+      <div class="mt-2 flex justify-between px-1">
+        <span
+          v-for="p in points"
+          :key="p.label"
+          class="font-mono text-[11px] text-text-3"
+        >
+          {{ p.label }}
+        </span>
       </div>
-      <div class="flex flex-1 flex-col">
-        <div class="h-[220px] w-full">
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="h-full w-full">
-            <defs>
-              <linearGradient id="jobsFoundFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="var(--color-accent)" stop-opacity="0.25" />
-                <stop offset="100%" stop-color="var(--color-accent)" stop-opacity="0" />
-              </linearGradient>
-            </defs>
-            <line
-              v-for="(gy, i) in gridLines"
-              :key="i"
-              x1="0"
-              :y1="gy"
-              x2="100"
-              :y2="gy"
-              stroke="var(--color-border)"
-              stroke-width="1"
-              stroke-dasharray="3 3"
-              vector-effect="non-scaling-stroke"
-            />
-            <path :d="areaPath" fill="url(#jobsFoundFill)" />
-            <path
-              :d="linePath"
-              fill="none"
-              stroke="var(--color-accent)"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              vector-effect="non-scaling-stroke"
-            />
-          </svg>
-        </div>
-        <div class="mt-2 flex">
-          <span
-            v-for="point in points"
-            :key="point.label"
-            class="flex-1 text-center text-[11px] text-text-muted"
-          >
-            {{ point.label }}
-          </span>
-        </div>
-      </div>
-    </div>
+    </template>
   </section>
 </template>

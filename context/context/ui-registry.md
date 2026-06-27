@@ -434,3 +434,96 @@ Canonical card. Heading `text-[16px] font-semibold leading-6 text-text-primary`.
 - **Line chart** (`JobsFoundChart`, purple): points at slot centers `(i+0.5)*slotWidth`; smooth path via per-segment cubic béziers with horizontal control tangents (`buildLinePath`). `<path stroke="var(--color-accent)" stroke-width="2.5" vector-effect="non-scaling-stroke">` over an area `<path fill="url(#jobsFoundFill)">` (vertical `linearGradient`, accent `stop-opacity` 0.25 → 0). Honors the ui-tokens "Dashboard Chart Colors" table; all colors via CSS-var tokens (no hex).
 
 Feature 17 swaps the mock `data` arrays in each for real PostHog series — the SVG/label rendering stays.
+
+---
+
+# ⚠️ Design System v2 — "Framed / Editorial" (Jobizzy)
+
+**Established 2026-06-26 from the landing-page rebuild (`Jobizzy (standalone).html`).**
+
+Everything **above this line** is the legacy v1 system (white cards, soft `0px_1px_3px` shadow, `rounded-2xl`, `bg-surface`/`text-text-primary` tokens). Everything **below** is v2 — a hard-edged framed look that now governs the **marketing/landing surface** and the **shared Navbar/Footer**.
+
+**Do not blend v1 and v2.** When building a landing/marketing component, match v2 below. The app pages (Dashboard, Find Jobs, Job Details, Profile) still render in v1 and will look mismatched on the new chrome until migrated — that is known and intentional for now.
+
+## v2 foundation (`app/assets/css/main.css`)
+
+- **Theme:** light default; dark via `[data-theme="dark"]` on `<html>`, toggled + persisted by `useTheme()` (`localStorage('jobizzy-theme')`), initialized in `app.vue`.
+- **New token utilities:** surfaces `bg-bg` (page cream `#F4F1EA`) / `bg-surface` / `bg-surface-2` / `bg-surface-sunk`; borders `border-border` (hard near-black `#1A1714`) / `border-border-soft`; text `text-text` / `text-text-2` / `text-text-3`; accent `bg-accent` / `text-accent` / `text-accent-ink` / `bg-accent-soft`; match tiers `good` / `fair` / `info` each with `-soft` + `-ink`; `text-linkedin`.
+- **Fonts:** `font-display` = Space Grotesk (headings, stat numbers), `font-mono` = Space Mono (eyebrows, micro-labels, url/source chips), `font-body` = Inter (default). Loaded via Google Fonts in `nuxt.config.ts`.
+- **Helper classes (use these, don't re-inline shadows):** `.jz-frame` (2px border + `4px 4px 0` shadow), `.jz-frame-sm` (`2px` shadow), `.jz-frame-lg` (`6px` shadow); `.jz-press` / `.jz-press-sm` (translate-on-hover press); `.jz-dot-grid` / `.jz-dot-grid-light` (radial dot backdrops).
+
+### v2 Framed Card / Panel
+
+File: `app/components/homepage/Hero.vue`, `Features.vue`
+Last updated: 2026-06-26
+
+| Property      | Class                                                      |
+| ------------- | ---------------------------------------------------------- |
+| Background    | `bg-surface` / `bg-surface-2` (stat cards & tables on `-2`) |
+| Border        | `border-2 border-border` (via `.jz-frame*`)                |
+| Border radius | `rounded-[14px]` large cards · `rounded-[10px]` stat/panel tiles |
+| Shadow        | `.jz-frame-lg` (6px) hero/table cards · `.jz-frame-sm` (2px) inner tiles |
+| Text — primary| `text-text`                                                |
+| Text — secondary | `text-text-2` · muted `text-text-3`                     |
+| Spacing       | card body `p-[22px]` / `p-4`; section `px-7 py-[84px]`     |
+| Accent usage  | one accent tile per group (`bg-accent` + white text) for emphasis |
+
+**Pattern notes:** Hard offset shadow is the signature — never use the v1 soft shadow here. Dividers inside cards are `border-b-[1.5px] border-border-soft`; section separators are `border-b-2 border-border` / `border-y-2 border-border`.
+
+### v2 Buttons
+
+File: `Hero.vue`, `BottomCta.vue`, `layout/Navbar.vue`
+Last updated: 2026-06-26
+
+| Variant            | Class                                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| Primary (hero/CTA) | `jz-frame jz-press rounded-[11px] bg-accent px-[26px] py-[15px] text-[16px] font-semibold text-white` |
+| Secondary          | `jz-frame jz-press rounded-[11px] bg-surface-2 px-[26px] py-[15px] text-[16px] font-semibold text-text` |
+| Nav CTA            | `jz-frame jz-press rounded-[9px] bg-accent px-4 py-[9px] text-[14px] font-semibold text-white` |
+| On-accent (CTA bg) | primary swaps to `bg-white text-accent-ink`; ghost = `border-2 border-white text-white hover:bg-white/[0.12]` |
+
+**Pattern notes:** All framed buttons get `.jz-press` (or `-sm` for the 38px nav controls). Hover is the press, not a color change. Icon-only controls (theme toggle) use `.jz-frame-sm .jz-press-sm` on a `h-[38px] w-[38px] rounded-[9px] bg-surface-2`.
+
+### v2 Eyebrow / micro-labels & headings
+
+File: `Features.vue`, `Hero.vue`, `Testimonial.vue`
+Last updated: 2026-06-26
+
+- **Eyebrow:** `font-mono text-[12px] font-bold uppercase tracking-[0.08em] text-accent-ink` (e.g. `01 — Find & Track`).
+- **Stat micro-label:** `font-mono text-[10.5px] uppercase tracking-[0.04em] text-text-3`.
+- **Section h2:** `font-display text-[34px] md:text-[42px] font-bold leading-[1.05] tracking-[-0.03em] text-text`.
+- **Hero h1:** `font-display text-[40px] sm:text-[52px] md:text-[62px] font-bold leading-[1.0] tracking-[-0.04em]`; accent word via `text-accent`.
+- **Stat number:** `font-display text-[26px]/[40px] font-bold`.
+
+### v2 Badge / Pill
+
+File: `Hero.vue` (hero badge), `Testimonial.vue` (avatar pill)
+Last updated: 2026-06-26
+
+- **Status pill:** `jz-frame-sm rounded-[22px] bg-good-soft px-3.5 py-[7px] text-[12.5px] font-semibold text-good-ink` + leading `h-2 w-2 rounded-full border-[1.5px] border-border bg-good` dot.
+- **Avatar pill:** `jz-frame rounded-[50px] bg-surface-2 py-2 pl-2 pr-[18px]` with a 42px gradient initials circle.
+
+### v2 Match-tier system (`Features.vue`)
+
+File: `app/components/homepage/Features.vue`
+Last updated: 2026-06-26
+
+- **Tier → classes:** `good` → bar `bg-good` / `text-good-ink`; `info` → `bg-info` / `text-info-ink`; `fair` → `bg-fair` / `text-fair-ink`. Mapped via `Record<Tier, string>` objects, not inline ternaries.
+- **Match bar:** `h-[9px] w-[46px] overflow-hidden rounded-[5px] border-[1.5px] border-border bg-surface` track + inner `block h-full` fill with `:style="{ width: `${match}%` }"`.
+- **Source chip:** `rounded-[5px] border-[1.5px] border-border px-[7px] py-[3px] font-mono text-[10px] font-bold`; `IN` → `bg-info-soft text-linkedin`, `URL` → `bg-surface-sunk text-text-2`.
+
+**Pattern notes:** This v2 tier mapping (good/info/fair) is the framed counterpart to v1's `MatchScoreBar`. When the real Find Jobs/Job Details pages migrate to v2, reuse these tier classes rather than v1's `bg-success`/`bg-info`/`bg-warning`.
+
+### v2 Dark terminal block (`Features.vue`)
+
+The agent-log card is **intentionally fixed-dark in both themes** (`#161410` bg, hard hex syntax colors) — the one place raw hex is allowed in v2, because it imitates a code editor. Mono font throughout.
+
+### v2 Shared chrome — Navbar & Footer
+
+Files: `app/components/layout/Navbar.vue`, `Footer.vue`
+Last updated: 2026-06-26
+
+- **Navbar:** `sticky top-0 z-50 border-b-2 border-border bg-surface`, inner `h-16 max-w-[1240px] px-7`. Logo = `.jz-frame-sm rounded-[10px] bg-accent` chevron mark + `font-display text-[21px] font-bold tracking-[-0.03em]` "Jobizzy". Links `text-[14px] font-semibold`, active `text-accent-ink` + a `-bottom-px h-[3px] bg-accent` underline (else `text-text-2 hover:text-text`). Theme toggle + auth-aware CTA (both `<ClientOnly>` to avoid hydration mismatch).
+- **Footer:** `border-t-2 border-border bg-surface`, inner `max-w-[1240px] px-7 py-[34px]`. Same logo lockup (32px mark, 18px wordmark) + `text-[13.5px] font-medium text-text-2 hover:text-text` links.
+- **Layout:** `default.vue` is now full-bleed (`bg-bg`, no 1440 surface frame) so sections own their max-width.
+- **Behavior:** auth-aware CTAs unchanged from v1 (`useAuth()` → `/login` vs `/dashboard`); nav CTA label swaps "Start free" / "Go to Dashboard"; analytics `cta_clicked` tracking retained.

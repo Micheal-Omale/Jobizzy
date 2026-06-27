@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ChartPoint } from "~~/types";
-import { niceChartMax, axisTicks } from "~~/lib/utils";
 
 // Wired to PostHog job_found matchScore buckets (feature 17) via useDashboardAnalytics.
 const props = defineProps<{
@@ -12,84 +11,43 @@ const isEmpty = computed(
   () => props.data.length === 0 || props.data.every((d) => d.value === 0),
 );
 
-const max = computed(() => niceChartMax(props.data.map((d) => d.value)));
-const yTicks = computed(() => axisTicks(max.value));
+const max = computed(() => Math.max(1, ...props.data.map((d) => d.value)));
 
-const bars = computed(() => {
-  const slotWidth = 100 / Math.max(1, props.data.length);
-  const barWidth = slotWidth * 0.42;
-  return props.data.map((d, i) => ({
+const bars = computed(() =>
+  props.data.map((d) => ({
     label: d.label,
-    width: barWidth,
-    x: i * slotWidth + (slotWidth - barWidth) / 2,
-    y: 100 - (d.value / max.value) * 100,
     height: (d.value / max.value) * 100,
-  }));
-});
-
-const gridLines = computed(() => yTicks.value.map((t) => 100 - (t / max.value) * 100));
+  })),
+);
 </script>
 
 <template>
-  <section
-    class="flex flex-col rounded-2xl border border-border bg-surface p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-  >
-    <h2 class="text-[16px] font-semibold leading-6 text-text-primary">Match Score Distribution</h2>
+  <section class="jz-frame flex flex-col rounded-[13px] bg-surface p-[22px]">
+    <h2 class="mb-[22px] font-display text-[18px] font-bold text-text">Match Score Distribution</h2>
 
-    <div v-if="loading" class="mt-6 h-[244px] w-full animate-pulse rounded-lg bg-surface-secondary"></div>
+    <div v-if="loading" class="h-[224px] w-full animate-pulse rounded-[10px] bg-surface-sunk"></div>
 
     <div
       v-else-if="isEmpty"
-      class="mt-6 flex h-[244px] flex-col items-center justify-center gap-1 text-center"
+      class="flex h-[224px] flex-col items-center justify-center gap-1 text-center"
     >
-      <p class="text-[14px] font-medium text-text-secondary">No data yet</p>
-      <p class="max-w-xs text-[13px] leading-5 text-text-muted">
+      <p class="text-[14px] font-medium text-text-2">No data yet</p>
+      <p class="max-w-xs text-[13px] leading-5 text-text-3">
         Scored jobs from your searches will appear here.
       </p>
     </div>
 
-    <div v-else class="mt-6 flex flex-1 gap-3">
+    <div v-else class="flex h-[200px] items-end gap-[11px]">
       <div
-        class="flex w-7 flex-col justify-between py-1 text-right text-[11px] leading-none text-text-muted"
+        v-for="bar in bars"
+        :key="bar.label"
+        class="flex h-full flex-1 flex-col items-center justify-end gap-2"
       >
-        <span v-for="t in yTicks" :key="t">{{ t }}</span>
-      </div>
-      <div class="flex flex-1 flex-col">
-        <div class="h-[220px] w-full">
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="h-full w-full">
-            <line
-              v-for="(gy, i) in gridLines"
-              :key="i"
-              x1="0"
-              :y1="gy"
-              x2="100"
-              :y2="gy"
-              stroke="var(--color-border)"
-              stroke-width="1"
-              stroke-dasharray="3 3"
-              vector-effect="non-scaling-stroke"
-            />
-            <rect
-              v-for="bar in bars"
-              :key="bar.label"
-              :x="bar.x"
-              :y="bar.y"
-              :width="bar.width"
-              :height="bar.height"
-              rx="1.2"
-              fill="var(--color-success)"
-            />
-          </svg>
-        </div>
-        <div class="mt-2 flex">
-          <span
-            v-for="bar in bars"
-            :key="bar.label"
-            class="flex-1 text-center text-[11px] text-text-muted"
-          >
-            {{ bar.label }}
-          </span>
-        </div>
+        <div
+          class="w-full rounded-t-[5px] border-2 border-border bg-good"
+          :style="{ height: `${bar.height}%` }"
+        ></div>
+        <span class="font-mono text-[9.5px] text-text-3">{{ bar.label }}</span>
       </div>
     </div>
   </section>

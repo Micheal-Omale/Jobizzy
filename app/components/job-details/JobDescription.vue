@@ -24,54 +24,33 @@ const postingUrl = computed<string | null>(
 </script>
 
 <template>
-  <div
-    class="rounded-2xl border border-border bg-surface p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-  >
-    <div class="mb-3 flex items-center gap-2">
-      <svg
-        class="h-4 w-4 text-text-secondary"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-        <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-        <path d="M10 9H8" />
-        <path d="M16 13H8" />
-        <path d="M16 17H8" />
-      </svg>
-      <h2 class="text-[16px] font-semibold leading-6 text-text-primary">Job Description</h2>
+  <div class="jz-frame rounded-[14px] bg-surface p-6">
+    <div class="mb-3.5 flex items-center gap-2.5">
+      <span class="flex h-[30px] w-[30px] items-center justify-center rounded-lg border-2 border-border bg-surface-sunk text-text-2">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+          <path d="M14 2v6h6M9 13h6M9 17h6" />
+        </svg>
+      </span>
+      <h2 class="font-display text-[18px] font-bold text-text">Job Description</h2>
     </div>
-    <p class="whitespace-pre-line text-[14px] leading-6 text-text-secondary">
+    <p class="whitespace-pre-line text-[15px] leading-[1.7] text-text-2">
       {{ description ?? "No job description available." }}
     </p>
 
     <div
       v-if="isTruncated && postingUrl"
-      class="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-border pt-4 text-[13px]"
+      class="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 border-t-2 border-border-soft pt-4 text-[13px]"
     >
-      <span class="text-text-muted">This is a preview from the job board.</span>
+      <span class="text-text-3">This is a preview from the job board.</span>
       <a
         :href="postingUrl"
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex items-center gap-1 font-medium text-accent hover:text-accent-dark"
+        class="inline-flex items-center gap-1 font-semibold text-accent-ink hover:text-accent"
       >
         Read the full description
-        <svg
-          class="h-3.5 w-3.5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M15 3h6v6" />
           <path d="M10 14 21 3" />
           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />

@@ -7,19 +7,25 @@ type Props = {
 
 const props = defineProps<Props>();
 
-// Thresholds read off the design: 90+ green, 80-89 blue, below 80 orange.
-const barColor = computed<string>(() => {
-  if (props.score >= 90) return "bg-success";
+// v2 tier system (design): 90+ green (good), 80-89 blue (info), below 80 amber (fair).
+const fillClass = computed<string>(() => {
+  if (props.score >= 90) return "bg-good";
   if (props.score >= 80) return "bg-info";
-  return "bg-warning";
+  return "bg-fair";
+});
+
+const textClass = computed<string>(() => {
+  if (props.score >= 90) return "text-good-ink";
+  if (props.score >= 80) return "text-info-ink";
+  return "text-fair-ink";
 });
 </script>
 
 <template>
-  <div class="flex items-center gap-2.5">
-    <div class="h-1.5 w-16 overflow-hidden rounded-full bg-border-light">
-      <div class="h-full rounded-full" :class="barColor" :style="{ width: `${score}%` }" />
-    </div>
-    <span class="text-[14px] font-semibold text-text-primary">{{ score }}%</span>
+  <div class="flex items-center gap-[11px]">
+    <span class="h-[13px] w-[90px] overflow-hidden rounded-[7px] border-2 border-border bg-surface-2">
+      <span class="block h-full" :class="fillClass" :style="{ width: `${score}%` }" />
+    </span>
+    <b class="font-display text-[17px]" :class="textClass">{{ score }}%</b>
   </div>
 </template>

@@ -44,25 +44,37 @@ export function useAuth() {
   const isAuthenticated = computed<boolean>(() => user.value !== null)
 
   async function refresh(): Promise<void> {
-    const insforge = useInsforge()
-    const { data, error } = await insforge.auth.getCurrentUser()
+    // Resolve the session server-side: /api/auth/me reads the httpOnly-free
+    // access cookie via the server client (server mode). The browser client's
+    // getCurrentUser() can't rehydrate a user from a cookie alone — it falls
+    // back to a cross-origin backend refresh that 401s on every page load.
+    let authedUser: AuthUser | null = null
 
-    if (error) {
-      // A 401 here just means there is no active session yet (logged-out user) —
-      // the normal unauthenticated state, not a failure worth surfacing.
-      if (error.statusCode !== 401) {
-        console.error('[composables/useAuth] refresh', error)
+    try {
+      const { user: current } = await $fetch<{ user: AuthUser | null }>('/api/auth/me')
+
+      if (current) {
+        authedUser = current
+      } else {
+        // No user from the access cookie — it may simply be expired. Mint a fresh
+        // one from the httpOnly refresh cookie (the local refresh route reads it
+        // correctly), then re-check. If there's no refresh cookie either, this is
+        // just a logged-out user and the retry returns null.
+        await $fetch('/api/auth/refresh', { method: 'POST' }).catch(() => {})
+        const { user: retried } = await $fetch<{ user: AuthUser | null }>('/api/auth/me')
+        authedUser = retried
       }
-      user.value = null
-      writeAuthHint(false)
-    } else {
-      user.value = data.user
-      writeAuthHint(Boolean(data.user))
-      // Associate this PostHog session with the signed-in user as soon as we
-      // know who they are, so events captured later are attributed correctly.
-      if (data.user) {
-        useAnalytics().identify(data.user)
-      }
+    } catch (error) {
+      console.error('[composables/useAuth] refresh', error)
+      authedUser = null
+    }
+
+    user.value = authedUser
+    writeAuthHint(Boolean(authedUser))
+    // Associate this PostHog session with the signed-in user as soon as we know
+    // who they are, so events captured later are attributed correctly.
+    if (authedUser) {
+      useAnalytics().identify(authedUser)
     }
 
     loaded.value = true

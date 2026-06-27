@@ -1,20 +1,16 @@
 <script setup lang="ts">
-// 1. External imports
-// 2. Internal imports
-// 3. Props and emits
-// 4. State
-// 5. Derived values
-// 6. Handlers
+// Full-bleed shell: sections own their own max-width / framing so hero, CTA and
+// dividers can span edge-to-edge in the framed design.
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-background text-text-primary font-sans">
+  <div class="flex min-h-screen flex-col bg-bg text-text font-body transition-colors">
     <LayoutNavbar />
-    
-    <main class="flex-1 w-full max-w-[1440px] mx-auto bg-surface">
+
+    <main class="w-full flex-1">
       <slot />
     </main>
-    
+
     <LayoutFooter />
   </div>
 </template>

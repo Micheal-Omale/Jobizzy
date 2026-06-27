@@ -15,13 +15,15 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-5rem)] w-full bg-background px-6 py-8 md:px-8">
-    <div class="mx-auto flex max-w-[1160px] flex-col gap-6">
-      <FindJobsSearchControls />
-      <div class="flex flex-col gap-4">
-        <FindJobsFilters />
-        <FindJobsTable />
-      </div>
+  <div class="mx-auto max-w-[1240px] px-7 pt-[38px] pb-16">
+    <h1 class="mb-[22px] font-display text-[36px] font-bold tracking-[-0.03em] text-text">Find Jobs</h1>
+
+    <FindJobsSearchControls />
+    <div class="mt-[18px]">
+      <FindJobsFilters />
+    </div>
+    <div class="mt-[18px]">
+      <FindJobsTable />
     </div>
   </div>
 </template>

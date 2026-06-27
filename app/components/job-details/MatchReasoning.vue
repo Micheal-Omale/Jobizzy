@@ -9,29 +9,18 @@ defineProps<Props>();
 </script>
 
 <template>
-  <div
-    class="rounded-2xl border border-border bg-surface p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-  >
-    <div class="mb-3 flex items-center gap-2">
-      <svg
-        class="h-4 w-4 text-accent"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path
-          d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"
-        />
-      </svg>
-      <h2 class="text-[12px] font-semibold uppercase tracking-wide text-text-secondary">
+  <div class="jz-frame rounded-[14px] bg-surface p-6">
+    <div class="mb-3.5 flex items-center gap-2.5">
+      <span class="flex h-[30px] w-[30px] items-center justify-center rounded-lg border-2 border-border bg-good-soft text-good-ink">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3l1.8 4.6L18.5 9l-4.6 1.8L12 15l-1.8-4.2L5.5 9l4.7-1.4z" />
+        </svg>
+      </span>
+      <h2 class="font-mono text-[12px] font-bold uppercase tracking-[0.06em] text-good-ink">
         AI Match Reasoning
       </h2>
     </div>
-    <p class="text-[14px] leading-6 text-text-secondary">
+    <p class="text-[15.5px] leading-[1.65] text-text">
       {{ job.match_reason ?? "No match reasoning available for this job yet." }}
     </p>
   </div>

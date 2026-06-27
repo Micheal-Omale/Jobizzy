@@ -41,95 +41,55 @@ async function runResearch() {
 </script>
 
 <template>
-  <div
-    class="rounded-2xl border border-border bg-surface p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
-  >
-    <div :class="['flex items-center justify-between gap-4', dossier ? 'mb-6' : '']">
-      <div class="flex items-center gap-2">
-        <svg
-          class="h-4 w-4 text-text-secondary"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-          <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-          <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-          <path d="M10 6h4" />
-          <path d="M10 10h4" />
-          <path d="M10 14h4" />
-          <path d="M10 18h4" />
-        </svg>
-        <h2 class="text-[16px] font-semibold leading-6 text-text-primary">Company Research</h2>
+  <div class="jz-frame rounded-[14px] bg-surface p-6">
+    <div class="mb-[18px] flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <span class="flex h-[30px] w-[30px] items-center justify-center rounded-lg border-2 border-border bg-accent-soft text-accent-ink">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 21h18M5 21V7l7-4 7 4v14" />
+          </svg>
+        </span>
+        <h2 class="font-display text-[18px] font-bold text-text">Company Research</h2>
       </div>
 
       <button
         v-if="!dossier"
         type="button"
-        @click="runResearch"
         :disabled="loading"
-        class="inline-flex shrink-0 items-center gap-2 rounded-md bg-accent px-4 py-2 text-[13px] font-medium text-accent-foreground hover:bg-accent-dark disabled:cursor-not-allowed disabled:opacity-50"
+        class="jz-frame jz-press inline-flex shrink-0 items-center gap-2 rounded-[9px] bg-accent px-4 py-2.5 text-[13.5px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+        @click="runResearch"
       >
-        <svg
-          v-if="loading"
-          class="h-4 w-4 animate-spin"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+        <svg v-if="loading" class="h-[15px] w-[15px] animate-spin" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" aria-hidden="true">
+          <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round" />
         </svg>
-        <svg
-          v-else
-          class="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.3-4.3" />
+        <svg v-else viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="M21 21l-4.3-4.3" />
         </svg>
-        {{ loading ? "Researching..." : "Research Company" }}
+        {{ loading ? "Researching…" : "Research Company" }}
       </button>
     </div>
 
-    <div v-if="errorMsg" class="mt-4 rounded-md bg-red-50 p-3 text-[13px] text-red-600">
+    <div
+      v-if="errorMsg"
+      role="alert"
+      class="mb-4 rounded-[9px] border-2 border-border bg-error-soft px-4 py-3 text-[13px] font-semibold text-error"
+    >
       {{ errorMsg }}
     </div>
 
     <!-- Empty state -->
-    <div v-if="!dossier" class="flex flex-col items-center justify-center gap-2 py-10 text-center">
-      <svg
-        class="h-8 w-8 text-text-muted"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.75"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-        <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-        <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-        <path d="M10 6h4" />
-        <path d="M10 10h4" />
-        <path d="M10 14h4" />
-        <path d="M10 18h4" />
-      </svg>
-      <p class="text-[14px] font-medium text-text-secondary">No research yet</p>
-      <p class="max-w-sm text-[13px] leading-5 text-text-muted">
+    <div
+      v-if="!dossier"
+      class="rounded-xl border-2 border-dashed border-border-soft bg-surface-sunk px-6 py-[42px] text-center"
+    >
+      <div class="mx-auto mb-3.5 flex h-[52px] w-[52px] items-center justify-center rounded-[13px] border-2 border-border bg-surface text-text-3">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 21h18M5 21V7l7-4 7 4v14" />
+        </svg>
+      </div>
+      <p class="font-display text-[17px] font-bold text-text">No research yet</p>
+      <p class="mx-auto mt-1.5 max-w-[340px] text-[14px] leading-[1.5] text-text-2">
         Click "Research Company" to let the AI browse {{ company }}'s public pages and build a
         dossier.
       </p>
@@ -139,18 +99,18 @@ async function runResearch() {
     <div v-else class="flex flex-col gap-6">
       <!-- 1. Company Overview -->
       <div v-if="dossier.companyOverview">
-        <h3 class="mb-2 text-[14px] font-semibold text-text-primary">Company Overview</h3>
-        <p class="text-[14px] leading-relaxed text-text-secondary">{{ dossier.companyOverview }}</p>
+        <h3 class="mb-2 text-[14px] font-bold text-text">Company Overview</h3>
+        <p class="text-[14px] leading-relaxed text-text-2">{{ dossier.companyOverview }}</p>
       </div>
 
       <!-- 2. Tech Stack -->
       <div v-if="dossier.techStack?.length">
-        <h3 class="mb-2 text-[14px] font-semibold text-text-primary">Tech Stack</h3>
+        <h3 class="mb-2 text-[14px] font-bold text-text">Tech Stack</h3>
         <div class="flex flex-wrap gap-2">
           <span
             v-for="tech in dossier.techStack"
             :key="tech"
-            class="inline-flex items-center rounded-md bg-surface-secondary px-2.5 py-1 text-[13px] font-medium text-text-secondary"
+            class="rounded-md border-2 border-border bg-surface-2 px-2.5 py-1 text-[13px] font-medium text-text-2"
           >
             {{ tech }}
           </span>
@@ -159,9 +119,9 @@ async function runResearch() {
 
       <!-- 3. Culture -->
       <div v-if="dossier.culture?.length">
-        <h3 class="mb-2 text-[14px] font-semibold text-text-primary">Culture & Values</h3>
+        <h3 class="mb-2 text-[14px] font-bold text-text">Culture &amp; Values</h3>
         <ul class="list-disc space-y-1 pl-5">
-          <li v-for="c in dossier.culture" :key="c" class="text-[14px] text-text-secondary">
+          <li v-for="c in dossier.culture" :key="c" class="text-[14px] text-text-2">
             {{ c }}
           </li>
         </ul>
@@ -169,28 +129,20 @@ async function runResearch() {
 
       <!-- 4. Why This Role -->
       <div v-if="dossier.whyThisRole">
-        <h3 class="mb-2 text-[14px] font-semibold text-text-primary">Why This Role</h3>
-        <p class="text-[14px] leading-relaxed text-text-secondary">{{ dossier.whyThisRole }}</p>
+        <h3 class="mb-2 text-[14px] font-bold text-text">Why This Role</h3>
+        <p class="text-[14px] leading-relaxed text-text-2">{{ dossier.whyThisRole }}</p>
       </div>
 
       <!-- 5. Your Edge (highlighted) -->
-      <div v-if="dossier.yourEdge?.length" class="rounded-xl border border-accent/10 bg-accent/5 p-4">
-        <h3 class="mb-2 flex items-center gap-2 text-[14px] font-semibold text-accent">
-          <svg
-            class="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
+      <div v-if="dossier.yourEdge?.length" class="rounded-xl border-2 border-border bg-accent-soft p-4">
+        <h3 class="mb-2 flex items-center gap-2 text-[14px] font-bold text-accent-ink">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
           </svg>
           Your Edge
         </h3>
         <ul class="list-disc space-y-1 pl-5">
-          <li v-for="edge in dossier.yourEdge" :key="edge" class="text-[14px] text-text-secondary">
+          <li v-for="edge in dossier.yourEdge" :key="edge" class="text-[14px] text-text-2">
             {{ edge }}
           </li>
         </ul>
@@ -198,9 +150,9 @@ async function runResearch() {
 
       <!-- 6. Gaps to Address -->
       <div v-if="dossier.gapsToAddress?.length">
-        <h3 class="mb-2 text-[14px] font-semibold text-text-primary">Gaps to Address</h3>
+        <h3 class="mb-2 text-[14px] font-bold text-text">Gaps to Address</h3>
         <ul class="list-disc space-y-1 pl-5">
-          <li v-for="gap in dossier.gapsToAddress" :key="gap" class="text-[14px] text-text-secondary">
+          <li v-for="gap in dossier.gapsToAddress" :key="gap" class="text-[14px] text-text-2">
             {{ gap }}
           </li>
         </ul>
@@ -208,9 +160,9 @@ async function runResearch() {
 
       <!-- 7. Smart Questions -->
       <div v-if="dossier.smartQuestions?.length">
-        <h3 class="mb-2 text-[14px] font-semibold text-text-primary">Smart Questions</h3>
+        <h3 class="mb-2 text-[14px] font-bold text-text">Smart Questions</h3>
         <ul class="list-disc space-y-1 pl-5">
-          <li v-for="q in dossier.smartQuestions" :key="q" class="text-[14px] italic text-text-secondary">
+          <li v-for="q in dossier.smartQuestions" :key="q" class="text-[14px] italic text-text-2">
             "{{ q }}"
           </li>
         </ul>
@@ -218,24 +170,25 @@ async function runResearch() {
 
       <!-- 8. Interview Prep -->
       <div v-if="dossier.interviewPrep?.length">
-        <h3 class="mb-2 text-[14px] font-semibold text-text-primary">Interview Prep</h3>
+        <h3 class="mb-2 text-[14px] font-bold text-text">Interview Prep</h3>
         <ul class="list-disc space-y-1 pl-5">
-          <li v-for="prep in dossier.interviewPrep" :key="prep" class="text-[14px] text-text-secondary">
+          <li v-for="prep in dossier.interviewPrep" :key="prep" class="text-[14px] text-text-2">
             {{ prep }}
           </li>
         </ul>
       </div>
 
       <!-- 9. Sources -->
-      <div v-if="dossier.sources?.length" class="mt-4 border-t border-border pt-4">
-        <p class="mb-2 text-[12px] font-medium text-text-muted">Sources:</p>
+      <div v-if="dossier.sources?.length" class="mt-4 border-t-2 border-border-soft pt-4">
+        <p class="mb-2 font-mono text-[12px] font-bold uppercase tracking-[0.05em] text-text-3">Sources</p>
         <div class="flex flex-wrap gap-2">
           <a
             v-for="src in dossier.sources"
             :key="src"
             :href="src"
             target="_blank"
-            class="break-all text-[12px] text-accent hover:underline"
+            rel="noopener noreferrer"
+            class="break-all font-mono text-[12px] text-accent-ink hover:underline"
           >
             {{ src }}
           </a>

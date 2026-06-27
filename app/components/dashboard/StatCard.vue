@@ -5,28 +5,49 @@ type Props = {
   note: string;
   trend?: string;
   trendPositive?: boolean;
+  accent?: boolean;
 };
 
-const props = withDefaults(defineProps<Props>(), { trendPositive: true });
+const props = withDefaults(defineProps<Props>(), { trendPositive: true, accent: false });
 
-const trendClass = computed(() =>
-  props.trendPositive
-    ? "bg-success-lightest text-success-darker"
-    : "bg-error-lightest text-error",
+const pillClass = computed(() =>
+  props.trendPositive ? "bg-good-soft text-good-ink" : "bg-error-soft text-error",
 );
 </script>
 
 <template>
   <div
-    class="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
+    class="jz-frame rounded-[13px] p-5"
+    :class="accent ? 'bg-accent' : 'bg-surface'"
   >
-    <span class="text-[14px] font-medium text-text-secondary">{{ label }}</span>
-    <span class="text-[30px] font-semibold leading-9 text-text-primary">{{ value }}</span>
-    <div class="flex items-center gap-2">
-      <span v-if="trend" class="rounded-sm px-2 py-0.5 text-[12px] font-medium" :class="trendClass">
-        {{ trend }}
-      </span>
-      <span class="text-[12px] text-text-muted">{{ note }}</span>
+    <div
+      class="font-mono text-[11px] uppercase tracking-[0.05em]"
+      :class="accent ? 'text-white/85' : 'text-text-3'"
+    >
+      {{ label }}
+    </div>
+    <div
+      class="mt-1.5 font-display text-[40px] font-bold leading-[1.05]"
+      :class="accent ? 'text-white' : 'text-text'"
+    >
+      {{ value }}
+    </div>
+
+    <div
+      v-if="trend"
+      class="mt-2 inline-flex items-center gap-[5px] rounded-md border-[1.5px] border-border px-2 py-[3px] text-[12px] font-bold"
+      :class="pillClass"
+    >
+      {{ trend }}
+      <span aria-hidden="true">{{ trendPositive ? "▲" : "▼" }}</span>
+      <span class="font-medium text-text-3">{{ note }}</span>
+    </div>
+    <div
+      v-else
+      class="mt-2.5 text-[12px] font-medium"
+      :class="accent ? 'text-white/85' : 'text-text-3'"
+    >
+      {{ note }}
     </div>
   </div>
 </template>

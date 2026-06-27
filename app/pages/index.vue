@@ -5,7 +5,7 @@ definePageMeta({
 </script>
 
 <template>
-  <div class="w-full border-x border-border bg-surface">
+  <div class="w-full bg-bg">
     <HomepageHero />
     <HomepageFeatures />
     <HomepageTestimonial />
