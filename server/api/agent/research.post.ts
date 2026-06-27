@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const companyResearch: Record<string, any> = { url: finalUrl };
-  const stagehand = createStagehand();
+  const stagehand = await createStagehand();
   
   try {
     await stagehand.init();
