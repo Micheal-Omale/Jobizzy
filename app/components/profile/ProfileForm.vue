@@ -46,14 +46,24 @@ function emptyRole(): WorkRole {
   };
 }
 
+// Coerce stored dates to what <input type="month"> accepts (YYYY-MM): a bare
+// year becomes YYYY-01, anything else blank. Guards against year-only values
+// saved before the server-side extractor normalized them.
+function toMonth(value: string | null | undefined): string {
+  if (!value) return "";
+  if (/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return value;
+  const year = value.match(/^(\d{4})$/);
+  return year ? `${year[1]}-01` : "";
+}
+
 function seedRoles(profile: Profile | null): WorkRole[] {
   const roles = profile?.work_experience;
   if (roles && roles.length > 0) {
     return roles.map((role) => ({
       company: role.company,
       title: role.title,
-      startDate: role.start_date ?? "",
-      endDate: role.end_date ?? "",
+      startDate: toMonth(role.start_date),
+      endDate: toMonth(role.end_date),
       currentlyWorking: role.currently_working,
       responsibilities: role.responsibilities,
     }));

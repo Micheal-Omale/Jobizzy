@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@browserbasehq/stagehand": "^3.6.0",
-    "@google/genai": "^2.10.0",
     "@insforge/sdk": "^1.4.2",
     "@posthog/nuxt": "^1.7.77",
     "nuxt": "^4.4.8",
+    "openai": "^4.104.0",
     "pdf-parse": "^2.4.5",
     "pdfmake": "^0.2.23",
     "posthog-node": "^5.38.3",

@@ -122,12 +122,12 @@ function workExperience(value: unknown): WorkExperienceEntry[] {
     .filter((role): role is Record<string, unknown> => !!role && typeof role === 'object')
     .map((role) => {
       const currentlyWorking = role.currently_working === true
-      const endDate = str(role.end_date)
+      const endDate = monthStr(role.end_date)
       return {
         company: str(role.company) ?? '',
         title: str(role.title) ?? '',
-        start_date: str(role.start_date) ?? '',
-        end_date: currentlyWorking ? null : (endDate ?? null),
+        start_date: monthStr(role.start_date),
+        end_date: currentlyWorking ? null : (endDate || null),
         currently_working: currentlyWorking,
         responsibilities: str(role.responsibilities) ?? '',
       }
@@ -149,6 +149,17 @@ function educationOf(value: unknown): Education | null {
 
 function str(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined
+}
+
+// The prompt asks for YYYY-MM, but JSON mode doesn't enforce formats — the model
+// sometimes returns a bare year. `<input type="month">` only accepts YYYY-MM, so
+// normalize here: keep valid YYYY-MM, coerce a bare YYYY to YYYY-01, drop the rest.
+function monthStr(value: unknown): string {
+  const s = str(value)
+  if (!s) return ''
+  if (/^\d{4}-(0[1-9]|1[0-2])$/.test(s)) return s
+  const year = s.match(/^(\d{4})$/)
+  return year ? `${year[1]}-01` : ''
 }
 
 function strArray(value: unknown): string[] | undefined {
