@@ -1,5 +1,3 @@
-import { Type } from '@google/genai'
-import type { Schema } from '@google/genai'
 import {
   DEGREE_OPTIONS,
   EXPERIENCE_LEVELS,
@@ -14,14 +12,8 @@ import type {
   WorkAuthorization,
   WorkExperienceEntry,
 } from '../../types'
-import { generateWithRetry, getGemini, parseJsonLoose } from './gemini'
+import { chatJson, parseJsonLoose } from './openai'
 
-// gemini-2.5-flash — better extraction quality and NOT hard-blocked the way
-// 2.0-flash is on this key (2.0-flash returns 429 "limit: 0", i.e. no free-tier
-// grant). NOTE: this key's project currently has no usable Gemini quota, so calls
-// fail (2.5-flash → 503 "high demand") until billing/quota is enabled on the key.
-// See progress-tracker. Once quota exists, 2.5-flash is the right default.
-const MODEL = 'gemini-2.5-flash'
 const MAX_ROLES = 3
 const MAX_OUTPUT_TOKENS = 8192
 
@@ -29,72 +21,45 @@ const EXPERIENCE_VALUES = EXPERIENCE_LEVELS.map((o) => o.value)
 const REMOTE_VALUES = REMOTE_PREFERENCES.map((o) => o.value)
 const WORK_AUTH_VALUES = WORK_AUTHORIZATIONS.map((o) => o.value)
 
+// Without a responseSchema (gpt-4o JSON mode is schema-free) the prompt has to
+// carry the exact shape and the allowed enum values. The sanitize() pass below
+// drops any blank or off-enum value the model returns anyway, so this is a
+// hint, not a hard contract.
+const SHAPE_HINT = `Return ONLY a JSON object with these keys. Omit a key or use "" when the resume does not clearly support it — never guess:
+{
+  "full_name": string,
+  "phone": string,
+  "location": "City, Country",
+  "current_title": "most recent job title",
+  "experience_level": one of [${EXPERIENCE_VALUES.join(', ')}],
+  "years_experience": integer,
+  "skills": string[],
+  "industries": string[],
+  "work_experience": [{ "company": string, "title": string, "start_date": "YYYY-MM", "end_date": "YYYY-MM ('' if current role)", "currently_working": boolean, "responsibilities": string }],
+  "education": { "degree": one of [${DEGREE_OPTIONS.join(', ')}], "field": string, "institution": string, "year": "YYYY" },
+  "job_titles_seeking": string[],
+  "remote_preference": one of [${REMOTE_VALUES.join(', ')}],
+  "preferred_locations": string[],
+  "salary_expectation": string,
+  "linkedin_url": string,
+  "portfolio_url": string,
+  "work_authorization": one of [${WORK_AUTH_VALUES.join(', ')}]
+}`
+
 const SYSTEM_PROMPT = `You extract a candidate's profile from the raw text of their resume.
 Only fill a field when the resume clearly supports it — leave anything you are unsure about empty rather than guessing.
 Map values onto the allowed enums exactly. Use the YYYY-MM format for dates where possible (YYYY for graduation year).
-Return at most ${MAX_ROLES} work experience entries, most recent first.`
-
-// JSON mode + this schema makes the model reply with fields matching our profile
-// shape (enums included) instead of free-form prose we'd have to parse.
-const RESPONSE_SCHEMA: Schema = {
-  type: Type.OBJECT,
-  properties: {
-    full_name: { type: Type.STRING },
-    phone: { type: Type.STRING },
-    location: { type: Type.STRING, description: 'City, Country' },
-    current_title: { type: Type.STRING, description: 'Most recent job title' },
-    experience_level: { type: Type.STRING, enum: EXPERIENCE_VALUES },
-    years_experience: { type: Type.INTEGER },
-    skills: { type: Type.ARRAY, items: { type: Type.STRING } },
-    industries: { type: Type.ARRAY, items: { type: Type.STRING } },
-    work_experience: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          company: { type: Type.STRING },
-          title: { type: Type.STRING },
-          start_date: { type: Type.STRING, description: 'YYYY-MM' },
-          end_date: { type: Type.STRING, description: 'YYYY-MM, empty if current role' },
-          currently_working: { type: Type.BOOLEAN },
-          responsibilities: { type: Type.STRING },
-        },
-      },
-    },
-    education: {
-      type: Type.OBJECT,
-      properties: {
-        degree: { type: Type.STRING, enum: DEGREE_OPTIONS },
-        field: { type: Type.STRING },
-        institution: { type: Type.STRING },
-        year: { type: Type.STRING, description: 'YYYY' },
-      },
-    },
-    job_titles_seeking: { type: Type.ARRAY, items: { type: Type.STRING } },
-    remote_preference: { type: Type.STRING, enum: REMOTE_VALUES },
-    preferred_locations: { type: Type.ARRAY, items: { type: Type.STRING } },
-    salary_expectation: { type: Type.STRING },
-    linkedin_url: { type: Type.STRING },
-    portfolio_url: { type: Type.STRING },
-    work_authorization: { type: Type.STRING, enum: WORK_AUTH_VALUES },
-  },
-}
+Return at most ${MAX_ROLES} work experience entries, most recent first.
+${SHAPE_HINT}`
 
 export async function extractProfileFromText(text: string): Promise<ExtractedProfile> {
-  const ai = getGemini()
-  const response = await generateWithRetry(ai, {
-    model: MODEL,
-    contents: `Extract the candidate's profile from this resume text:\n\n${text}`,
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-      responseMimeType: 'application/json',
-      responseSchema: RESPONSE_SCHEMA,
-      temperature: 0.2,
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
-    },
+  const raw = await chatJson({
+    system: SYSTEM_PROMPT,
+    user: `Extract the candidate's profile from this resume text:\n\n${text}`,
+    temperature: 0.2,
+    maxTokens: MAX_OUTPUT_TOKENS,
   })
 
-  const raw = response.text
   if (!raw) {
     throw new Error('Model returned no structured profile')
   }

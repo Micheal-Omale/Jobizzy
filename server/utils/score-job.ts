@@ -1,13 +1,6 @@
-import { Type } from '@google/genai'
-import type { Schema } from '@google/genai'
 import type { AdzunaJob, Profile, ScoredJob } from '../../types'
-import { generateWithRetry, getGemini, parseJsonLoose } from './gemini'
+import { chatJson, parseJsonLoose } from './openai'
 
-const MODEL = 'gemini-2.5-flash'
-// 2.5-flash is a THINKING model — reasoning tokens count against maxOutputTokens.
-// Scoring is a constrained classification task that doesn't need chain-of-thought,
-// so we disable thinking (thinkingBudget: 0) and give the JSON comfortable room.
-// At 300 the thinking budget truncated the JSON → "Model returned invalid JSON".
 const MAX_OUTPUT_TOKENS = 1024
 
 const SYSTEM_PROMPT = `You are a precise job-matching assistant. Given a candidate's profile and a single job posting, score how well the candidate fits the role.
@@ -16,17 +9,9 @@ Judge fit from the candidate's skills, seniority, years of experience, current t
 - matchReason: one tight paragraph (2-3 sentences) explaining the score, grounded in the actual profile and posting.
 - matchedSkills: skills the candidate genuinely has that this role needs.
 - missingSkills: skills the role needs that the candidate's profile does not show.
-Return ONLY valid JSON matching the schema. Never invent skills the candidate did not list.`
-
-const RESPONSE_SCHEMA: Schema = {
-  type: Type.OBJECT,
-  properties: {
-    matchScore: { type: Type.INTEGER, description: '0-100' },
-    matchReason: { type: Type.STRING },
-    matchedSkills: { type: Type.ARRAY, items: { type: Type.STRING } },
-    missingSkills: { type: Type.ARRAY, items: { type: Type.STRING } }
-  }
-}
+Return ONLY valid JSON of exactly this shape, no prose:
+{"matchScore": <integer 0-100>, "matchReason": "<string>", "matchedSkills": ["<string>"], "missingSkills": ["<string>"]}
+Never invent skills the candidate did not list.`
 
 // Compact profile summary for the prompt — only the fields that drive a match,
 // so the model isn't distracted by URLs/contact info.
@@ -45,27 +30,19 @@ function profileSummary(profile: Profile): string {
   ].join('\n')
 }
 
-// Scores one Adzuna job against the profile. One Gemini call per job (chosen for
+// Scores one Adzuna job against the profile. One gpt-4o call per job (chosen for
 // robust structured output and clean per-job events), wrapped in the shared
-// retry helper for the transient 503/429 spikes 2.5-flash throws under load.
+// retry helper for transient 429/5xx spikes under load.
 export async function scoreJob(job: AdzunaJob, profile: Profile): Promise<ScoredJob> {
-  const ai = getGemini()
-  const contents = `CANDIDATE PROFILE:\n${profileSummary(profile)}\n\nJOB POSTING:\nTitle: ${job.title}\nCompany: ${job.company?.display_name ?? ''}\nLocation: ${job.location?.display_name ?? ''}\nDescription: ${job.description ?? ''}`
+  const user = `CANDIDATE PROFILE:\n${profileSummary(profile)}\n\nJOB POSTING:\nTitle: ${job.title}\nCompany: ${job.company?.display_name ?? ''}\nLocation: ${job.location?.display_name ?? ''}\nDescription: ${job.description ?? ''}`
 
-  const response = await generateWithRetry(ai, {
-    model: MODEL,
-    contents,
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-      responseMimeType: 'application/json',
-      responseSchema: RESPONSE_SCHEMA,
-      temperature: 0.3,
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
-      thinkingConfig: { thinkingBudget: 0 }
-    }
+  const raw = await chatJson({
+    system: SYSTEM_PROMPT,
+    user,
+    temperature: 0.3,
+    maxTokens: MAX_OUTPUT_TOKENS,
   })
 
-  const raw = response.text
   if (!raw) {
     throw new Error('Model returned no score')
   }

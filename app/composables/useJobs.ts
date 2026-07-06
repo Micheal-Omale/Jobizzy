@@ -18,9 +18,24 @@ export function useJobs() {
   const loaded = useState<boolean>('jobs:loaded', () => false)
 
   // Filter/sort controls — shared so Filters.vue writes and Table.vue reads them.
+  // Default to newest so the most recently found jobs lead the table.
   const query = useState<string>('jobs:query', () => '')
   const matchFilter = useState<MatchFilter>('jobs:matchFilter', () => 'all')
-  const sort = useState<JobSort>('jobs:sort', () => 'score')
+  const sort = useState<JobSort>('jobs:sort', () => 'newest')
+
+  // Transient multi-select for the delete action — job ids the user has marked.
+  // Not persisted; cleared after a successful delete or a fresh search.
+  const selectedIds = useState<string[]>('jobs:selectedIds', () => [])
+
+  function toggleSelected(id: string): void {
+    selectedIds.value = selectedIds.value.includes(id)
+      ? selectedIds.value.filter((x) => x !== id)
+      : [...selectedIds.value, id]
+  }
+
+  function clearSelected(): void {
+    selectedIds.value = []
+  }
 
   // Jobs after applying the match filter + text search, then sorted. Table paginates
   // the result. Treat a missing match_score as 0 so it never counts as a high match.
@@ -48,6 +63,8 @@ export function useJobs() {
   async function refresh(): Promise<void> {
     const userId = user.value?.id
     if (!userId) return
+    // A fresh load invalidates any stale marks.
+    clearSelected()
     loading.value = true
     try {
       const { data, error } = await insforge.database
@@ -92,5 +109,46 @@ export function useJobs() {
     }
   }
 
-  return { jobs, filteredJobs, loading, loaded, query, matchFilter, sort, refresh, fetchJob }
+  // Permanently delete the given jobs (RLS + explicit user_id both scope the write
+  // to the signed-in user). Prunes the local list and clears the selection on
+  // success so the table updates without a full refetch. agent_logs rows are left
+  // intact — they record what the agent did, so history stays accurate.
+  async function deleteJobs(ids: string[]): Promise<boolean> {
+    const userId = user.value?.id
+    if (!userId || ids.length === 0) return false
+    try {
+      const { error } = await insforge.database
+        .from('jobs')
+        .delete()
+        .eq('user_id', userId)
+        .in('id', ids)
+      if (error) {
+        console.error('[composables/useJobs] deleteJobs', error)
+        return false
+      }
+      const removed = new Set(ids)
+      jobs.value = jobs.value.filter((job) => !removed.has(job.id))
+      selectedIds.value = selectedIds.value.filter((id) => !removed.has(id))
+      return true
+    } catch (error) {
+      console.error('[composables/useJobs] deleteJobs', error)
+      return false
+    }
+  }
+
+  return {
+    jobs,
+    filteredJobs,
+    loading,
+    loaded,
+    query,
+    matchFilter,
+    sort,
+    selectedIds,
+    toggleSelected,
+    clearSelected,
+    refresh,
+    fetchJob,
+    deleteJobs
+  }
 }

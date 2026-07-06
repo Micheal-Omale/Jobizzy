@@ -3,18 +3,18 @@ import { createInsforgeServer } from '../../utils/insforge'
 import { searchJobs, formatSalary } from '../../../lib/adzuna'
 import { scoreJob } from '../../utils/score-job'
 import { createPostHogServer } from '../../utils/posthog'
-import { isTransientError } from '../../utils/gemini'
+import { isTransientError } from '../../utils/openai'
 import { MATCH_THRESHOLD } from '../../../lib/utils'
 
-// Gemini's free tier caps gemini-2.5-flash at 20 requests/min. Scoring is one
-// call per job, so a 10-job search would burst toward that cap — space the calls
-// out to stay comfortably under it. ~2.5s between jobs ≈ <17 calls/min.
+// Scoring is one gpt-4o call per job, so a 10-job search fires a quick burst.
+// Space the calls out a little to stay comfortably under the account's rate
+// limit and avoid transient 429s. ~2.5s between jobs ≈ <17 calls/min.
 const SCORE_DELAY_MS = 2500
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // POST /api/agent/find — the job-discovery agent. Acts as the signed-in user
 // (SSR cookie → server client): searches Adzuna, scores each result against the
-// user's profile with Gemini, saves jobs + an agent_runs record, and returns the
+// user's profile with gpt-4o, saves jobs + an agent_runs record, and returns the
 // counts the Find Jobs banner shows. Synchronous by design for this feature.
 export default defineEventHandler(async (event) => {
   const insforge = createInsforgeServer(event)
@@ -81,9 +81,9 @@ export default defineEventHandler(async (event) => {
 
     let strongMatches = 0
     let savedCount = 0
-    // Sequential per-job scoring (chosen approach): one Gemini call each, robust
+    // Sequential per-job scoring (chosen approach): one gpt-4o call each, robust
     // structured output, and a clean job_found event per saved job. Throttled to
-    // respect the free-tier rate limit; one failed/rate-limited job is skipped
+    // respect the account's rate limit; one failed/rate-limited job is skipped
     // rather than sinking the whole run.
     for (let i = 0; i < adzunaJobs.length; i++) {
       const job = adzunaJobs[i]!

@@ -13,7 +13,7 @@ export async function createStagehand() {
     localBrowserLaunchOptions: {
       cdpUrl: `${process.env.BROWSERLESS_WS_URL}?token=${process.env.BROWSERLESS_API_KEY}`,
     },
-    model: "google/gemini-2.5-flash",
+    model: { modelName: "gpt-4o", apiKey: process.env.OPENAI_API_KEY },
     logger: () => {},
   });
 }

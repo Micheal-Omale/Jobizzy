@@ -518,6 +518,61 @@ Last updated: 2026-06-26
 
 The agent-log card is **intentionally fixed-dark in both themes** (`#161410` bg, hard hex syntax colors) — the one place raw hex is allowed in v2, because it imitates a code editor. Mono font throughout.
 
+---
+
+## Find Jobs — Mark & Delete (v2)
+
+Added to the (now v2-framed) `app/components/find-jobs/Table.vue`: per-row selection checkboxes, a bulk-action bar, and a confirm dialog. Selection/delete state lives in `useJobs()` (`selectedIds`, `toggleSelected`, `clearSelected`, `deleteJobs`). **Note:** the "Jobs Table (Feature 09/11)" entries far above are stale v1 — the live table is v2. These entries reflect what is actually in the file.
+
+### v2 In-table button (pager / bulk actions)
+
+File: `app/components/find-jobs/Table.vue`
+Last updated: 2026-07-06
+
+| Variant             | Class                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| Neutral (Next/page) | `rounded-lg border-2 border-border bg-surface px-[13px] py-[7px] text-[13px] font-semibold text-text hover:bg-surface-sunk` |
+| Ghost (Prev/Clear)  | `rounded-lg border-2 border-border-soft px-[13px] py-[7px] text-[13px] font-semibold text-text-3 hover:text-text` |
+| Active page         | `border-2 border-border bg-accent text-white`                                              |
+| Destructive         | `rounded-lg border-2 border-error bg-error px-[13px] py-[7px] text-[13px] font-semibold text-white hover:opacity-90` |
+| Disabled            | `disabled:cursor-not-allowed disabled:opacity-50`                                          |
+
+**Pattern notes:**
+These are the **flat in-table button family** — `rounded-lg border-2`, *not* the marketing `.jz-frame .jz-press rounded-[11px]` buttons (§ "v2 Buttons"). Use this family for controls *inside* a framed table/panel; use `.jz-press` buttons for page-level/marketing CTAs. **Destructive is the first delete button in the app** — solid `bg-error` + `border-error` + `text-white`, hover via `opacity`, never a color swap. Reuse `bg-error`/`border-error` for any future destructive action.
+
+### v2 Selection checkbox + selected row
+
+File: `app/components/find-jobs/Table.vue`
+Last updated: 2026-07-06
+
+| Element             | Class                                                        |
+| ------------------- | ----------------------------------------------------------- |
+| Checkbox            | `h-4 w-4 cursor-pointer accent-accent align-middle`         |
+| Checkbox cell/head  | table cell + `pr-0`; cell uses `@click.stop` so it doesn't trigger row navigation |
+| Selected row tint   | `bg-surface-sunk` (added via `:class` on the `<tr>`)        |
+
+**Pattern notes:**
+Native checkbox tinted with `accent-accent` (matches the v1 form checkbox `accent-accent` convention — the one cross-version constant). Selected rows use the same `bg-surface-sunk` as row hover, so a marked row reads as "held." Header checkbox is a select-all scoped to the **current page** only.
+
+### v2 Confirm dialog / modal
+
+File: `app/components/find-jobs/Table.vue`
+Last updated: 2026-07-06
+
+| Element        | Class                                                                                 |
+| -------------- | ------------------------------------------------------------------------------------- |
+| Backdrop       | `fixed inset-0 z-[60] flex items-center justify-center bg-black/45 p-4 backdrop-blur-[1px]` |
+| Panel          | `jz-frame-lg w-full max-w-[420px] rounded-[14px] border-2 border-border bg-surface p-6` |
+| Title          | `font-display text-[19px] font-bold text-text`                                        |
+| Body           | `mt-2 text-[14px] text-text-2`                                                         |
+| Actions row    | `mt-6 flex justify-end gap-2.5`                                                        |
+| Cancel button  | `rounded-lg border-2 border-border-soft px-[15px] py-[9px] text-[13.5px] font-semibold text-text-3 hover:text-text disabled:opacity-50` |
+| Confirm button | destructive in-table button at `px-[15px] py-[9px] text-[13.5px]`, `disabled:opacity-60` |
+| Transition     | `<Transition name="jz-backdrop">` — fade only (`opacity 0.2s ease`)                    |
+
+**Pattern notes:**
+**First true centered modal in the app** (the Navbar drawer is a right slide-in). Reuses the Navbar's `Teleport to="body"` + `jz-backdrop` fade pattern, but the transition CSS is **scoped per-component** (Navbar's is `scoped`, so it was redeclared locally in Table.vue — if a third modal appears, promote `jz-backdrop` to a global helper in `main.css`). Panel is a `.jz-frame-lg` card (same 6px hard shadow as the big table/hero cards). Backdrop dismiss via `@click.self`, gated on `!deleting` so it can't close mid-request. Buttons expose a busy label ("Deleting…") and are disabled while the async action runs. Reuse this shell for any future destructive/confirm dialog.
+
 ### v2 Shared chrome — Navbar & Footer
 
 Files: `app/components/layout/Navbar.vue`, `Footer.vue`

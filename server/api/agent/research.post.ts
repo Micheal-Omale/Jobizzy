@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createInsforgeServer } from "../../utils/insforge";
 import { createStagehand } from "../../utils/browserless";
-import { getGemini, generateWithRetry, parseJsonLoose } from "../../utils/gemini";
+import { chatJson, parseJsonLoose } from "../../utils/openai";
 import { createPostHogServer } from "../../utils/posthog";
 import type { Job, Profile } from "../../../types";
 
@@ -133,7 +133,7 @@ export default defineEventHandler(async (event) => {
     await stagehand.close();
   }
 
-  // Gemini Synthesis
+  // gpt-4o synthesis
   const systemPrompt = `You are a sharp career strategist preparing a candidate to apply for a specific role. You are given (a) research collected from the company's own website, (b) the job posting, and (c) the candidate's profile. Produce a concise, concrete briefing that gives this specific candidate an edge for this specific role.
 
 Rules:
@@ -172,18 +172,13 @@ Experience: ${profile.years_experience} years, level ${profile.experience_level}
 Skills: ${(profile.skills || []).join(", ")}
 Work history: ${JSON.stringify(profile.work_experience)}`;
 
-  const ai = getGemini();
-  const response = await generateWithRetry(ai, {
-    model: "gemini-2.5-flash",
-    contents: userPrompt,
-    config: {
-      systemInstruction: systemPrompt,
-      responseMimeType: "application/json",
-      temperature: 0.4,
-    },
+  const raw = await chatJson({
+    system: systemPrompt,
+    user: userPrompt,
+    temperature: 0.4,
   });
 
-  const dossier = parseJsonLoose(response.text!);
+  const dossier = parseJsonLoose(raw);
 
   // Save to jobs table
   const { error: updateError } = await insforge.database

@@ -1,8 +1,6 @@
-import { Type } from '@google/genai'
-import type { Schema } from '@google/genai'
 import type { Content, TDocumentDefinitions, TFontDictionary } from 'pdfmake/interfaces'
 import type { Education, Profile, WorkExperienceEntry } from '../../types'
-import { generateWithRetry, getGemini, parseJsonLoose } from './gemini'
+import { chatJson, parseJsonLoose } from './openai'
 
 // @types/pdfmake only types the browser build (`createPdf`, which needs a vfs).
 // The server-side PdfPrinter is the package's untyped main entry, so load it via
@@ -26,7 +24,6 @@ type PdfPrinterCtor = new (fonts: TFontDictionary) => {
 import pdfPrinterModule from 'pdfmake/src/printer.js'
 const PdfPrinter = pdfPrinterModule as unknown as PdfPrinterCtor
 
-const MODEL = 'gemini-2.5-flash'
 const MAX_BULLETS = 5
 const MAX_OUTPUT_TOKENS = 2048
 
@@ -36,26 +33,12 @@ const MAX_OUTPUT_TOKENS = 2048
 const SYSTEM_PROMPT = `You are a professional resume writer. From the candidate's profile, write:
 1. A concise professional summary (2-3 sentences, first-person implied, no "I"), grounded only in the profile.
 2. For each role provided, 2-4 achievement-oriented bullet points rewritten from its responsibilities — strong action verbs, concrete and specific, no fabricated metrics or facts.
-Return the same number of experience entries as roles, in the same order. Never invent employers, dates, or numbers that aren't in the profile.`
+Return the same number of experience entries as roles, in the same order. Never invent employers, dates, or numbers that aren't in the profile.
+Return ONLY valid JSON of exactly this shape, no prose:
+{"summary": "<string>", "experience": [{"bullets": ["<string>"]}]}`
 
 type RoleBullets = { bullets: string[] }
 type ResumeContent = { summary: string; experience: RoleBullets[] }
-
-const RESPONSE_SCHEMA: Schema = {
-  type: Type.OBJECT,
-  properties: {
-    summary: { type: Type.STRING },
-    experience: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          bullets: { type: Type.ARRAY, items: { type: Type.STRING } },
-        },
-      },
-    },
-  },
-}
 
 // Secondary text colour for contact line / dates / section rules. PDF output is
 // not a Tailwind surface, so a literal grey here is fine — the no-hardcoded-hex
@@ -76,7 +59,6 @@ async function writeResumeContent(
   profile: Profile,
   roles: WorkExperienceEntry[],
 ): Promise<ResumeContent> {
-  const ai = getGemini()
   const input = {
     full_name: profile.full_name,
     current_title: profile.current_title,
@@ -91,19 +73,13 @@ async function writeResumeContent(
     })),
   }
 
-  const response = await generateWithRetry(ai, {
-    model: MODEL,
-    contents: `Write resume prose for this candidate:\n\n${JSON.stringify(input)}`,
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-      responseMimeType: 'application/json',
-      responseSchema: RESPONSE_SCHEMA,
-      temperature: 0.7,
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
-    },
+  const raw = await chatJson({
+    system: SYSTEM_PROMPT,
+    user: `Write resume prose for this candidate:\n\n${JSON.stringify(input)}`,
+    temperature: 0.7,
+    maxTokens: MAX_OUTPUT_TOKENS,
   })
 
-  const raw = response.text
   if (!raw) throw new Error('Model returned no resume content')
   return normalise(parseJsonLoose(raw), roles)
 }

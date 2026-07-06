@@ -28,11 +28,13 @@ export default defineNuxtConfig({
     host: process.env.NUXT_PUBLIC_POSTHOG_HOST,
   },
   runtimeConfig: {
-    // Server-private. Mapped from GEMINI_API_KEY in .env (the auto NUXT_ prefix
-    // doesn't apply since the var isn't named NUXT_GEMINI_API_KEY), so set it
-    // explicitly. Never expose under `public` — this is a secret.
-    geminiApiKey: process.env.GEMINI_API_KEY ?? '',
-    // Adzuna credentials — same explicit-mapping reason as geminiApiKey. Note
+    // Server-private. Mapped from OPENAI_API_KEY in .env (the auto NUXT_ prefix
+    // doesn't apply since the var isn't named NUXT_OPENAI_API_KEY), so set it
+    // explicitly. Never expose under `public` — this is a secret. Powers every
+    // gpt-4o call: the app AI in server/utils/openai.ts (matching, extraction,
+    // résumé, research synthesis) and Stagehand's browser-driving model.
+    openaiApiKey: process.env.OPENAI_API_KEY ?? '',
+    // Adzuna credentials — same explicit-mapping reason as openaiApiKey. Note
     // the key var in .env is ADZUNA_API_KEY (not ADZUNA_APP_KEY as the build-plan
     // wrote it) — match the real env name or Adzuna 400s with empty credentials.
     adzunaAppId: process.env.ADZUNA_APP_ID ?? '',

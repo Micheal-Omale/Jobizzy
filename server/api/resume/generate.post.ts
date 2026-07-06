@@ -1,11 +1,11 @@
 // Stateless résumé generation. The browser POSTs the saved profile JSON; this
-// route runs Gemini + pdfmake and returns the PDF bytes. Like the extract route
+// route runs gpt-4o + pdfmake and returns the PDF bytes. Like the extract route
 // it never touches InsForge DB or storage and needs no user auth — the only
-// secret involved is the Gemini key. The client uploads the returned PDF and
+// secret involved is the OpenAI key. The client uploads the returned PDF and
 // links it via the authenticated browser client (useProfile).
 import type { Profile } from '../../../types'
 import { generateResumePdf } from '../../utils/generate-resume'
-import { isTransientError } from '../../utils/gemini'
+import { isTransientError } from '../../utils/openai'
 
 export default defineEventHandler(async (event) => {
   const profile = await readBody<Profile>(event)
