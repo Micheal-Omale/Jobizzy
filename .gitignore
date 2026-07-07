@@ -29,7 +29,7 @@ Thumbs.db
 
 # Claude Code config (local tooling, not app code)
 .claude/
-
+.agents/
 # Design mockups / scratch HTML
 designs/
 context/context/designs/
