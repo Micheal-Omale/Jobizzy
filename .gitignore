@@ -30,6 +30,7 @@ Thumbs.db
 # Claude Code config (local tooling, not app code)
 .claude/
 .agents/
+AGENTS.md
 
 # Design mockups / scratch HTML
 designs/
